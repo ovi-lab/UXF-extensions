@@ -4,58 +4,30 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UXF;
 using Newtonsoft.Json;
-using ubc.ok.ovilab.HPUI.Core;
 using System.Linq;
 using System;
 using UnityEngine.UI;
-using ubc.ok.ovilab.ViconUnityStream;
 
 namespace ubc.ok.ovilab.uxf.extensions
 {
-    public class ExperimentManager : MonoBehaviour
+    public class ExperimentManager<T> : MonoBehaviour
     {
         private const string ASK_PROMPT = "When ready ask researcher to proceed with the experiment";
         [SerializeField]
         [Tooltip("The url address to the experiment server.")]
         string experimentServerUrl = "http://127.0.0.1:5000";
 
-        public List<Transform> buttonsRoots;
-        public Color defaultColor = Color.white;
-        public Color defaultHoverColor = Color.yellow;
-        public Color targetButtonColor = Color.red;
-        public Color defaultHighlightColor = Color.green;
-        public AudioClip hoverAudio;
-        public AudioClip contactAudio;
-        public AudioSource audioSource;
-        public bool disableHover;
-        public bool disableHoverAudio;
-        public bool trackJoints = true; // Adding this for performance reasons
-        public List<string> forceTrackJoints = new List<string>(); // When trackJoints is false, bypass that for the coordinates in this list
         public Button startNextButton;
         public TMPro.TMP_Text outputText;
         public TMPro.TMP_Text displayText;
         public TMPro.TMP_Text countText;
-        public ButtonController thumbBaseButton;
-        public TargetManager targetManager;
-
-        // NOTE: If a calibration function is set, when appropriate
-        // the CalibrationComplete function also should be
-        // called. Until then the next block will not get called.
-        private Dictionary<string, Action> calibrationFunctions = new Dictionary<string, Action>();
 
         #region HIDDEN_VARIABLES
-        private Dictionary<string, (ButtonController controller, Tracker tracker, Vector3 localScale)> buttons;
-        private List<string> activeButtons;
-        private ButtonController targetButton;
         private System.Random random;
         private bool blockEnded = true;
-        private CalibrationState calibrationState = CalibrationState.none;
-        private Dictionary<string, object> calibrationParameters;
         private bool sessionStarted = false;
         private int participant_index = -1;
-        private Dictionary<string, List<string>> XORGroupFlattened;
         private int countDisplay_blockNum, countDisplay_blockTotal, countDisplay_trialTotal;
-        private bool hideNonTargets = false;
         private BlockData blockData;
         #endregion
 
@@ -77,7 +49,6 @@ namespace ubc.ok.ovilab.uxf.extensions
 
             startNextButton.onClick.AddListener(OnGoToNextButtonClicked);
 
-
             // Strating the session after a few seconds
             StartCoroutine(StartSessionAfterWait(session));
         }
@@ -93,7 +64,7 @@ namespace ubc.ok.ovilab.uxf.extensions
                            (idx) =>
                            StartCoroutine(GetJsonUrl("api/global-data", (jsonText) =>
                            {
-                               ConfigGlobalData data = JsonConvert.DeserializeObject<ConfigGlobalData>(jsonText);
+                               ConfigGlobalData data = JsonConvert.DeserializeObject<T>(jsonText);
                                participant_index = data.participant_index;
                                countDisplay_blockTotal = data.config_length;
                                Debug.Log($"Recieved session data (pp# {participant_index}): {jsonText}");
