@@ -32,7 +32,7 @@ namespace ubc.ok.ovilab.uxf.extensions
         // NOTE: If a calibration function is set, when appropriate
         // the CalibrationComplete function also should be
         // called. Until then the next block will not get called.
-        private Dictionary<string, Action> calibrationFunctions = new Dictionary<string, Action>();
+        private Dictionary<string, Action<TBlockData>> calibrationFunctions = new Dictionary<string, Action<TBlockData>>();
         private CalibrationState calibrationState = CalibrationState.none;
         private Dictionary<string, object> calibrationParameters;
         #endregion
@@ -218,7 +218,7 @@ namespace ubc.ok.ovilab.uxf.extensions
                             {
                                 calibrationState = CalibrationState.started;
                                 AddToOutpuText($"Running calibration - {calibrationName}");
-                                calibrationFunctions[calibrationName].Invoke();
+                                calibrationFunctions[calibrationName].Invoke(blockData);
                             }
                             else
                             {
@@ -250,7 +250,7 @@ namespace ubc.ok.ovilab.uxf.extensions
             calibrationState = CalibrationState.ended;
         }
 
-        public void AddCalibrationMethod(String name, Action action)
+        public void AddCalibrationMethod(String name, Action<TBlockData> action)
         {
             if (calibrationFunctions.ContainsKey(name))
             {
