@@ -35,6 +35,7 @@ namespace ubc.ok.ovilab.uxf.extensions
         private Dictionary<string, Action<TBlockData>> calibrationFunctions = new Dictionary<string, Action<TBlockData>>();
         private CalibrationState calibrationState = CalibrationState.none;
         private Dictionary<string, object> calibrationParameters;
+        private int getJsonRetryCounter = 0;
         #endregion
 
         #region UNITY_FUNCTIONS
@@ -77,7 +78,8 @@ namespace ubc.ok.ovilab.uxf.extensions
                                AddToOutpuText($"Recieved session data (pp# {participant_index}): {jsonText}");
                                GetConfig();
                            })),
-                           post: true));
+                           post: true,
+                           repeatIfFailed: true));
         }
         #endregion
 
@@ -261,34 +263,40 @@ namespace ubc.ok.ovilab.uxf.extensions
 
         // Copied from  UFX.UI.UIController
         // Used to get the trial config from the server
-        IEnumerator GetJsonUrl(string endpoint, System.Action<string> action=null, bool post=false)
+        IEnumerator GetJsonUrl(string endpoint, System.Action<string> action=null, bool post=false, bool repeatIfFailed=false)
         {
             string url = $"{experimentServerUrl}/{endpoint}";
-            using (UnityWebRequest webRequest = post ? UnityWebRequest.Post(url, "") : UnityWebRequest.Get(url))
+            do
             {
-                webRequest.timeout = 30;
-                yield return webRequest.SendWebRequest();
+                using (UnityWebRequest webRequest = post ? UnityWebRequest.Post(url, "") : UnityWebRequest.Get(url))
+                {
+                    webRequest.timeout = 5;
+                    yield return webRequest.SendWebRequest();
 
-                bool error;
+                    bool error;
 #if UNITY_2020_OR_NEWER
                 error = webRequest.result != UnityWebRequest.Result.Success;
 #else
 #pragma warning disable
-                error = webRequest.isHttpError || webRequest.isNetworkError;
+                    error = webRequest.isHttpError || webRequest.isNetworkError;
 #pragma warning restore
 #endif
 
-                if (error)
-                {
-                    Debug.LogError($"Request for {experimentServerUrl} failed with: {webRequest.error}");
-                    yield break;
-                }
+                    if (error)
+                    {
+                        Debug.LogWarning($"Request for {experimentServerUrl} failed with: {webRequest.error}");
+                        AddToOutpuText($"Retrying {getJsonRetryCounter++}");
+                        continue;
+                    }
 
-                if (action != null)
-                {
-                    action(System.Text.Encoding.UTF8.GetString(webRequest.downloadHandler.data));
+                    if (action != null)
+                    {
+                        action(System.Text.Encoding.UTF8.GetString(webRequest.downloadHandler.data));
+                        yield break;
+                    }
                 }
-            }
+            } while (repeatIfFailed);
+
         }
 
         private void GetConfig()
