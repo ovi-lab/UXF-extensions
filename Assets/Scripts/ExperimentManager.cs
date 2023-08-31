@@ -26,6 +26,7 @@ namespace ubc.ok.ovilab.uxf.extensions
         private System.Random random;
         private bool blockEnded = true;
         private bool sessionStarted = false;
+        private bool lastBlockCancelled = false;
         private int participant_index = -1;
         private int countDisplay_blockNum, countDisplay_blockTotal, countDisplay_trialTotal;
         private TBlockData blockData;
@@ -99,11 +100,11 @@ namespace ubc.ok.ovilab.uxf.extensions
             block.settings.SetValue("canceled", false); /// by default block is not canceled
             block.settings.SetValue("calibrationName", el.calibrationName);
             block.settings.SetValue("calibrationParameters", calibrationParameters);
-            ConfigureBlock(el, block);
+            ConfigureBlock(el, block, lastBlockCancelled);
             Debug.Log($"Added block with {block.trials.Count} trials");
         }
 
-        protected virtual void ConfigureBlock(TBlockData el, Block block) { }
+        protected virtual void ConfigureBlock(TBlockData el, Block block, bool lastBlockCancelled) { }
 
         private void OnBlockBeginBase(Block block)
         {
@@ -112,6 +113,7 @@ namespace ubc.ok.ovilab.uxf.extensions
             AddToCountText(true);
             displayText.gameObject.SetActive(false);
             blockEnded = false;
+            lastBlockCancelled = false;
         }
 
         protected virtual void OnBlockBegin(Block block) { }
@@ -197,6 +199,7 @@ namespace ubc.ok.ovilab.uxf.extensions
 
                 // Mark as canceled
                 Session.instance.CurrentBlock.settings.SetValue("canceled", true);
+                lastBlockCancelled = true;
                 countDisplay_blockTotal += 1;
 
                 // Ending current trial would also end block
