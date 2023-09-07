@@ -15,7 +15,7 @@ namespace ubc.ok.ovilab.uxf.extensions
         private const string ASK_PROMPT = "When ready ask researcher to proceed with the experiment";
         [SerializeField]
         [Tooltip("The url address to the experiment server.")]
-        string experimentServerUrl = "http://127.0.0.1:5000";
+        public string experimentServerUrl = "http://127.0.0.1:5000";
 
         public Button startNextButton;
         public TMPro.TMP_Text outputText;
