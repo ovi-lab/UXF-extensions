@@ -1,0 +1,94 @@
+@startuml
+skinparam legend {
+  backgroundColor #GhostWhite
+  entrySeparator #GhostWhite
+}
+
+legend top
+  <#GhostWhite,#GhostWhite>|        |= __Legend__ |
+  |<#lightpink>   | UI interactions during experiment|
+  |<#lightgreen>  | Abstract function in ""ExperimentManager"" to be implemented by user|
+endlegend
+
+|__in-package__|
+start
+:""OnSessionBegin""  called;
+|#FloralWhite|__user-defined__|
+#lightgreen:""OnSessionBegin"";
+|#Azure|__in-package__|
+
+while (Get config for block from experiment server (""block_data"")) is (not end block)
+
+    #lightpink:Click next button;
+    if (calibration function exists) then (yes)
+        |__user-defined__|
+        :Run calibration;
+        :""CalibrationComplete""  called;
+    else (no)
+    endif
+
+    |__in-package__|
+    :""ConfigureBlock""  called with ""block_data"";
+
+    |__user-defined__|
+    #lightgreen:""ConfigureBlock"";
+
+    |__in-package__|
+    #lightpink:Click next button;
+    :""OnBlockBegin""  called;
+
+    |__user-defined__|
+    #lightgreen:""OnBlockBegin"";
+
+    |__in-package__|
+    while (trials remaining) is (yes)
+
+        :""OnTrialBegin""  called;
+
+        |__user-defined__|
+        #lightgreen:""OnTrialBegin"";
+
+        split
+            |__in-package__|
+            #lightpink:Cancel button pressed;
+        split again
+            |__user-defined__|
+            :Participant performs trial;
+            :Wait for ""EndCurrentTrial"" / ""BeginNextTrial"";
+        end split
+
+        |__in-package__|
+        :""OnTrialEnd""  called;
+
+        |__user-defined__|
+        #lightgreen:""OnTrialEnd"";
+
+        |__in-package__|
+        if (Was cancel button pressed) then (yes)
+            break
+        else (no)
+            :If  ""BeginNextTrial""  not called, wait for it;
+        endif
+    endwhile (no)
+
+    :""OnBlockEnd""  called;
+
+    |__user-defined__|
+    #lightgreen:""OnBlockEnd"";
+
+    |__in-package__|
+    if (Cancel button pressed) then (no)
+        :Move to next block;
+    else (yes)
+    endif
+
+endwhile (end block)
+
+:""OnSessionEnd""  called;
+
+|__user-defined__|
+#lightgreen:""OnSessionEnd"";
+
+|__in-package__|
+stop
+@enduml
