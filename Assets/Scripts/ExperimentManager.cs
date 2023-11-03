@@ -18,11 +18,12 @@ namespace ubc.ok.ovilab.uxf.extensions
     /// </summary>
     public abstract class ExperimentManager<TBlockData> : MonoBehaviour where TBlockData:BlockData
     {
-        private const string ASK_PROMPT = "When ready ask researcher to proceed with the experiment";
         [SerializeField]
         [Tooltip("The url address to the experiment server.")]
         public string experimentServerUrl = "http://127.0.0.1:5000";
 
+        [Tooltip("The string to display on `displayText`")]
+        [SerializeField] private string askPrompt = "When ready ask researcher to proceed with the experiment";
         [Tooltip("The UI button used to move to next/cancel.")]
         [SerializeField] private Button startNextButton;
         [Tooltip("The text where the logs gets printed.")]
@@ -85,7 +86,7 @@ namespace ubc.ok.ovilab.uxf.extensions
         {
             yield return new WaitForSeconds(2.0f);
 
-            displayText.text = ASK_PROMPT;
+            displayText.text = askPrompt;
 
             StartCoroutine(
                 GetJsonUrl("api/move-to-block/0",  /// Making sure to start from the begining
@@ -220,7 +221,7 @@ namespace ubc.ok.ovilab.uxf.extensions
             blockEnded = true;
             AddToOutpuText("Ended Block: " + block.settings.GetString("blockName"));
             displayText.gameObject.SetActive(true);
-            displayText.text = ASK_PROMPT;
+            displayText.text = askPrompt;
         }
 
         /// <summary>
