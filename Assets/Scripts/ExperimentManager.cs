@@ -21,6 +21,8 @@ namespace ubc.ok.ovilab.uxf.extensions
         [SerializeField]
         [Tooltip("The url address to the experiment server.")]
         public string experimentServerUrl = "http://127.0.0.1:5000";
+        [Tooltip("If set to true, everytime the application starts, it will force the server to block 0. Only for in editor.")]
+        public bool experimentStartFrom0 = false;
 
         [Tooltip("The string to display on `displayText`")]
         [SerializeField] private string askPrompt = "When ready ask researcher to proceed with the experiment";
@@ -89,7 +91,12 @@ namespace ubc.ok.ovilab.uxf.extensions
             displayText.text = askPrompt;
 
             StartCoroutine(
-                GetJsonUrl("api/move-to-block/0",  /// Making sure to start from the begining
+#if UNITY_EDITOR
+                /// Making sure to start from the begining when experimentStartFrom0 is true
+                GetJsonUrl(experimentStartFrom0 ? "api/move-to-block/0": "api/active",
+#else
+                GetJsonUrl("api/active",
+#endif
                            (idx) =>
                            StartCoroutine(GetJsonUrl("api/global-data", (jsonText) =>
                            {
@@ -100,7 +107,9 @@ namespace ubc.ok.ovilab.uxf.extensions
                                AddToOutpuText($"Recieved session data (pp# {participant_index}): {jsonText}");
                                GetConfig();
                            })),
-                           post: true,
+#if UNITY_EDITOR
+                           post: experimentStartFrom0,
+#endif
                            repeatIfFailed: true));
         }
         #endregion
@@ -377,9 +386,10 @@ namespace ubc.ok.ovilab.uxf.extensions
 
         // Copied from  UFX.UI.UIController
         // Used to get the trial config from the server
-        IEnumerator GetJsonUrl(string endpoint, System.Action<string> action=null, bool post=false, bool repeatIfFailed=false)
+        IEnumerator GetJsonUrl(string endpoint, System.Action<string> action=null, System.Action<long> errorAction=null, bool post=false, bool repeatIfFailed=false)
         {
             string url = $"{experimentServerUrl}/{endpoint}";
+            Debug.Log($"Request: {url}");
             do
             {
                 using (UnityWebRequest webRequest = post ? UnityWebRequest.Post(url, "") : UnityWebRequest.Get(url))
@@ -400,8 +410,11 @@ namespace ubc.ok.ovilab.uxf.extensions
                     {
                         Debug.LogWarning($"Request for {experimentServerUrl} failed with: {webRequest.error}");
                         AddToOutpuText($"Retrying {getJsonRetryCounter++}");
+                        errorAction?.Invoke(webRequest.responseCode);
+                        yield return new WaitForSeconds(5);
                         continue;
                     }
+                    getJsonRetryCounter = 0;
 
                     if (action != null)
                     {
@@ -415,11 +428,24 @@ namespace ubc.ok.ovilab.uxf.extensions
 
         private void GetConfig()
         {
-            StartCoroutine(GetJsonUrl("api/config", (jsonText) =>
-            {
-                blockData = JsonConvert.DeserializeObject<TBlockData>(jsonText);
-                AddToOutpuText($"Got new block: {blockData.name}");
-            }));
+            StartCoroutine(
+                GetJsonUrl(
+                    "api/config",
+                    (jsonText) =>
+                    {
+                        blockData = JsonConvert.DeserializeObject<TBlockData>(jsonText);
+                        AddToOutpuText($"Got new block: {blockData.name}");
+                    },
+                    (errorCode) =>
+                    {
+                        // This happens only if /move-to-next needs to be called
+                        if (errorCode == 406)
+                        {
+                            AddToOutpuText("Server moving to next");
+                            StartCoroutine(GetJsonUrl("api/move-to-next", post:true));
+                        }
+                    },
+                    repeatIfFailed:true));
         }
 
         private void GetNextBlock()
