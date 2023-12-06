@@ -18,14 +18,39 @@ namespace ubc.ok.ovilab.uxf.extensions
     /// </summary>
     public abstract class ExperimentManager<TBlockData> : MonoBehaviour where TBlockData:BlockData
     {
+        [Header("UXF settings")]
+        /// <summary>
+        /// The study name used when starting session (See Session.Begin).
+        /// </summary>
+        [Tooltip("The study name used when starting session (See Session.Begin).")]
+        [SerializeField] public string studyName = "study";
+
+        /// <summary>
+        /// The sesstion ID used when starting session (See Session.Begin).
+        /// </summary>
+        [Tooltip("The sesstion ID used when starting session (See Session.Begin).")]
+        [SerializeField] public int sessionNumber = 1;
+
+        /// <summary>
+        /// The initial settings used when starting a Session (See <see cref="UXF.Session.Begin"/>)
+        /// </summary>
+        public Settings initialSettings;
+
+        /// <summary>
+        /// The initial participant details used when starting a Session (See <see cref="UXF.Session.Begin"/>)
+        /// </summary>
+        public Dictionary<string, object> initialParticipantDetails;
+
+        [Space(3)][Header("Experiment server settings")]
         [SerializeField]
         [Tooltip("The url address to the experiment server.")]
         public string experimentServerUrl = "http://127.0.0.1:5000";
         [Tooltip("If set to true, everytime the application starts, it will force the server to block 0. Only for in editor.")]
         public bool experimentStartFrom0 = false;
 
+        [Space(3)][Header("Canvas UI setup")]
         [Tooltip("The string to display on `displayText`")]
-        [SerializeField] private string askPrompt = "When ready ask researcher to proceed with the experiment";
+        [Multiline][SerializeField] private string askPrompt = "When ready ask researcher to proceed with the experiment";
         [Tooltip("The UI button used to move to next/cancel.")]
         [SerializeField] private Button startNextButton;
         [Tooltip("The text where the logs gets printed.")]
@@ -74,6 +99,7 @@ namespace ubc.ok.ovilab.uxf.extensions
             session.onSessionEnd.AddListener(OnSessionEndBase);
 
             startNextButton.onClick.AddListener(OnGoToNextButtonClicked);
+            startNextButtonText.text = "Start session";
 
             // Strating the session after a few seconds
             StartCoroutine(StartSessionAfterWait(session));
@@ -259,6 +285,23 @@ namespace ubc.ok.ovilab.uxf.extensions
 
         #region HELPER_FUNCTIONS
         /// <summary>
+        /// Setup the initial values used when Session is started <see cref="UXF.Session.Begin"/>.
+        /// Calling after session starts will throw an <see cref="System.InvalidOperationException"/>
+        /// </summary>
+        public void SessionBeginParams(string studyName, int sessionNumber, Dictionary<string, object> participantDetails, Settings settings)
+        {
+            if (sessionStarted)
+            {
+                throw new InvalidOperationException("SessionBeginParams called after session started.");
+            }
+
+            this.studyName = studyName;
+            this.sessionNumber = sessionNumber;
+            initialParticipantDetails = participantDetails;
+            initialSettings = settings;
+        }
+
+        /// <SUMMARY>
         /// Callback for the next button click event.
         /// </summary>
         private void OnGoToNextButtonClicked()
@@ -270,7 +313,7 @@ namespace ubc.ok.ovilab.uxf.extensions
                     AddToOutpuText("participant_index is -1, did't get data?");
                     return;
                 }
-                Session.instance.Begin("hpuiPredicitveModel.study1", $"{participant_index}");
+                Session.instance.Begin(studyName, $"{participant_index}", sessionNumber, initialParticipantDetails, initialSettings);
                 Session.instance.settings.SetValue("participant_index", participant_index);
 
                 // Makes sure the session doesn't get started again
