@@ -12,14 +12,19 @@ endlegend
 
 |__in-package__|
 start
-:""OnSessionBegin""  called;
 |#FloralWhite|__user-defined__|
+:(optional) Set ""UXF.Session.Being"" parameters
+with ""ExperimentManager.SessionBeginParams"";
+|__in-package__|
+#lightpink:Click next button ("Start Session");
+:""OnSessionBegin""  called;
+|__user-defined__|
 #lightgreen:""OnSessionBegin"";
 |#Azure|__in-package__|
 
 while (Get config for block from experiment server (""block_data"")) is (not end block)
 
-    #lightpink:Click next button;
+    #lightpink:Click next button ("Run Calibration");
     if (calibration function exists) then (yes)
         |__user-defined__|
         :Run calibration;
@@ -34,7 +39,7 @@ while (Get config for block from experiment server (""block_data"")) is (not end
     #lightgreen:""ConfigureBlock"";
 
     |__in-package__|
-    #lightpink:Click next button;
+    #lightpink:Click next button ("Run Block");
     :""OnBlockBegin""  called;
 
     |__user-defined__|
@@ -54,7 +59,7 @@ while (Get config for block from experiment server (""block_data"")) is (not end
         split again
             |__user-defined__|
             :Participant performs trial;
-            :Wait for ""EndCurrentTrial"" / ""BeginNextTrial"";
+            :Wait for ""EndCurrentTrial"" / ""BeginNextTrial"" call;
         end split
 
         |__in-package__|

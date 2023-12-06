@@ -16,6 +16,6 @@ A representation of the process can be seen in the following activity chart. Not
 
 To use this, extend the [`ubc.ok.ovilab.uxf.extensions.BlockData`](Assets/Scripts/BlockData.cs) to have the data from the experiment server. Then use that as the generic type and implement the [`ubc.ok.ovilab.uxf.extensions.ExperimentManager`](Assets/Scripts/ExperimentManager.cs) abstract class.
 
-In the Unity Scene, ensure the extended `ExperimentManager` class is setup with the server URL pointing to the correct endpoint, setup the button and UI elements.
+In the Unity Scene, ensure the extended `ExperimentManager` class is setup with the server URL pointing to the correct endpoint, setup the button and UI elements and provide the session details (this can also be done programatically with `ExperimentManager.SessionBeginParams`).
 
 See documentation on [`ubc.ok.ovilab.uxf.extensions.ExperimentManager`](Assets/Scripts/ExperimentManager.cs) for more details.
