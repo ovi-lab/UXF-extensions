@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System.Linq;
 using System;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 namespace ubc.ok.ovilab.uxf.extensions
 {
@@ -47,6 +48,10 @@ namespace ubc.ok.ovilab.uxf.extensions
         public string experimentServerUrl = "http://127.0.0.1:5000";
         [Tooltip("If set to true, everytime the application starts, it will force the server to block 0. Only for in editor.")]
         public bool experimentStartFrom0 = false;
+
+        [Space(3)][Header("Extension events")]
+        [Tooltip("Event called when block data is recieved.")]
+        public UnityEvent<TBlockData> onBlockRecieved = new UnityEvent<TBlockData>();
 
         [Space(3)][Header("Canvas UI setup")]
         [Tooltip("The string to display on `displayText`")]
@@ -477,6 +482,7 @@ namespace ubc.ok.ovilab.uxf.extensions
                     (jsonText) =>
                     {
                         blockData = JsonConvert.DeserializeObject<TBlockData>(jsonText);
+                        onBlockRecieved?.Invoke(blockData);
                         AddToOutpuText($"Got new block: {blockData.name}");
                     },
                     (errorCode) =>
