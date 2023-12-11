@@ -103,6 +103,8 @@ namespace ubc.ok.ovilab.uxf.extensions
             session.onTrialEnd.AddListener(OnTrialEndBase);
             session.onSessionEnd.AddListener(OnSessionEndBase);
 
+            session.settingsToLog.AddRange(new List<string>(){ "blockName", "canceled", "calibrationName" });
+
             startNextButton.onClick.AddListener(OnGoToNextButtonClicked);
             startNextButtonText.text = "Start session";
 
