@@ -9,7 +9,7 @@ using System;
 using UnityEngine.UI;
 using UnityEngine.Events;
 
-namespace ubc.ok.ovilab.uxf.extensions
+namespace ubco.ovilab.uxf.extensions
 {
     /// <summary>
     /// Extension class with UXF functions that work with the
@@ -442,7 +442,7 @@ namespace ubc.ok.ovilab.uxf.extensions
             Debug.Log($"Request: {url}");
             do
             {
-                using (UnityWebRequest webRequest = post ? UnityWebRequest.Post(url, "") : UnityWebRequest.Get(url))
+                using (UnityWebRequest webRequest = post ? UnityWebRequest.PostWwwForm(url, "") : UnityWebRequest.Get(url))
                 {
                     webRequest.timeout = 5;
                     yield return webRequest.SendWebRequest();

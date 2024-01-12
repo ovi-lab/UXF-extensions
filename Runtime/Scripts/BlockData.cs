@@ -1,4 +1,4 @@
-namespace ubc.ok.ovilab.uxf.extensions
+namespace ubco.ovilab.uxf.extensions
 {
     /// <summary>
     /// Object to parse json data from experiment server. An extension
