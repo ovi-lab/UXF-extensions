@@ -1,15 +1,15 @@
 {
-    "name": "ubc.ok.ovilab.uxf.extensions",
-    "version": "0.1.0",
+    "name": "ubco.ovilab.uxf.extensions",
+    "version": "0.1.1",
     "displayName": "UXF extensions",
     "description": "Extensions for UXF",
-    "unity": "2019.1",
+    "unity": "2022.3",
     "dependencies": {
       "com.unity.test-framework": "1.1.31",
       "com.unity.textmeshpro": "3.0.6"
     },
     "author": {
-        "name": "MFA Shariff",
+        "name": "Shariff Faleel",
         "email": "shariff.mfa@outlook.com"
     },
     "scopedRegistries": [
