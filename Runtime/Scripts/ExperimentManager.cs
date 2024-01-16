@@ -264,6 +264,7 @@ namespace ubco.ovilab.uxf.extensions
             AddToOutpuText("Ended Block: " + block.settings.GetString("blockName"));
             displayText.gameObject.SetActive(true);
             displayText.text = askPrompt;
+            startNextButtonText.text = "Calibration for next block?";
         }
 
         /// <summary>
