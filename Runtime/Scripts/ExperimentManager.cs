@@ -22,32 +22,32 @@ namespace ubco.ovilab.uxf.extensions
         [Header("UXF settings")]
         /// <summary>
         /// The study name used when starting session (See Session.Begin).
+        /// This could be overridden by calling <see cref="SessionBeginParams"/>
         /// </summary>
         [Tooltip("The study name used when starting session (See Session.Begin).")]
         [SerializeField] public string studyName = "study";
 
         /// <summary>
         /// The sesstion ID used when starting session (See Session.Begin).
+        /// This could be overridden by calling <see cref="SessionBeginParams"/>
         /// </summary>
         [Tooltip("The sesstion ID used when starting session (See Session.Begin).")]
         [SerializeField] public int sessionNumber = 1;
 
         /// <summary>
         /// The initial settings used when starting a Session (See <see cref="UXF.Session.Begin"/>)
+        /// This could be overridden by calling <see cref="SessionBeginParams"/>
         /// </summary>
         public Settings initialSettings;
 
         /// <summary>
         /// The initial participant details used when starting a Session (See <see cref="UXF.Session.Begin"/>)
+        /// This could be overridden by calling <see cref="SessionBeginParams"/>
         /// </summary>
         public Dictionary<string, object> initialParticipantDetails;
 
-        [Space(3)][Header("Experiment server settings")]
-        [SerializeField]
-        [Tooltip("The url address to the experiment server.")]
-        public string experimentServerUrl = "http://127.0.0.1:5000";
-        [Tooltip("If set to true, everytime the application starts, it will force the server to block 0. Only for in editor.")]
-        public bool experimentStartFrom0 = false;
+        [Tooltip("Data source being used.")]
+        public DataSource dataSource;
 
         [Space(3)][Header("Extension events")]
         [Tooltip("Event called when block data is recieved.")]
@@ -82,6 +82,9 @@ namespace ubco.ovilab.uxf.extensions
         private CalibrationState calibrationState = CalibrationState.none;
         private Dictionary<string, object> calibrationParameters;
         private int getJsonRetryCounter = 0;
+
+        private Dictionary<int, TBlockData> defaultData;
+        private int currentDefaultDataIndex = 0;
         #endregion
 
         #region UNITY_FUNCTIONS
@@ -123,27 +126,38 @@ namespace ubco.ovilab.uxf.extensions
 
             displayText.text = askPrompt;
 
-            StartCoroutine(
+            if (dataSource.useLocalData)
+            {
+                StartCoroutine(
 #if UNITY_EDITOR
-                /// Making sure to start from the begining when experimentStartFrom0 is true
-                GetJsonUrl(experimentStartFrom0 ? "api/move-to-block/0": "api/active",
+                    /// Making sure to start from the begining when experimentStartFrom0 is true
+                    GetJsonUrl(dataSource.experimentStartFrom0 ? "api/move-to-block/0": "api/active",
 #else
-                GetJsonUrl("api/active",
+                    GetJsonUrl("api/active",
 #endif
-                           (idx) =>
-                           StartCoroutine(GetJsonUrl("api/global-data", (jsonText) =>
-                           {
-                               ConfigGlobalData data = JsonConvert.DeserializeObject<ConfigGlobalData>(jsonText);
-                               participant_index = data.participant_index;
-                               countDisplay_blockTotal = data.config_length;
-                               Debug.Log($"Recieved session data (pp# {participant_index}): {jsonText}");
-                               AddToOutpuText($"Recieved session data (pp# {participant_index}): {jsonText}");
-                               GetConfig();
-                           })),
+                               (idx) =>
+                               StartCoroutine(GetJsonUrl("api/global-data", (jsonText) =>
+                               {
+                                   ConfigGlobalData data = JsonConvert.DeserializeObject<ConfigGlobalData>(jsonText);
+                                   participant_index = data.participant_index;
+                                   countDisplay_blockTotal = data.config_length;
+                                   Debug.Log($"Recieved session data (pp# {participant_index}): {jsonText}");
+                                   AddToOutpuText($"Recieved session data (pp# {participant_index}): {jsonText}");
+                                   GetConfig();
+                               })),
 #if UNITY_EDITOR
-                           post: experimentStartFrom0,
+                               post: dataSource.experimentStartFrom0,
 #endif
-                           repeatIfFailed: true));
+                               repeatIfFailed: true));
+            }
+            else
+            {
+                defaultData = JsonConvert.DeserializeObject<Dictionary<int,TBlockData>>(dataSource.configJsonFile.text);
+                participant_index = dataSource.participantIndex;
+                countDisplay_blockTotal = defaultData.Count;
+                Debug.Log($"Recieved session data (pp# {participant_index})");
+                AddToOutpuText($"Recieved session data (pp# {participant_index})");
+            }
         }
         #endregion
 
@@ -439,7 +453,7 @@ namespace ubco.ovilab.uxf.extensions
         // Used to get the trial config from the server
         IEnumerator GetJsonUrl(string endpoint, System.Action<string> action=null, System.Action<long> errorAction=null, bool post=false, bool repeatIfFailed=false)
         {
-            string url = $"{experimentServerUrl}/{endpoint}";
+            string url = $"{dataSource.experimentServerUrl}/{endpoint}";
             Debug.Log($"Request: {url}");
             do
             {
@@ -459,7 +473,7 @@ namespace ubco.ovilab.uxf.extensions
 
                     if (error)
                     {
-                        Debug.LogWarning($"Request for {experimentServerUrl} failed with: {webRequest.error}");
+                        Debug.LogWarning($"Request for {dataSource.experimentServerUrl} failed with: {webRequest.error}");
                         AddToOutpuText($"Retrying {getJsonRetryCounter++}");
                         errorAction?.Invoke(webRequest.responseCode);
                         yield return new WaitForSeconds(5);
@@ -479,42 +493,59 @@ namespace ubco.ovilab.uxf.extensions
 
         private void GetConfig()
         {
-            StartCoroutine(
-                GetJsonUrl(
-                    "api/config",
-                    (jsonText) =>
-                    {
-                        blockData = JsonConvert.DeserializeObject<TBlockData>(jsonText);
-                        onBlockRecieved?.Invoke(blockData);
-                        AddToOutpuText($"Got new block: {blockData.name}");
-                    },
-                    (errorCode) =>
-                    {
-                        // This happens only if /move-to-next needs to be called
-                        if (errorCode == 406)
+            if (dataSource.useLocalData)
+            {
+                StartCoroutine(
+                    GetJsonUrl(
+                        "api/config",
+                        (jsonText) =>
                         {
-                            AddToOutpuText("Server moving to next");
-                            StartCoroutine(GetJsonUrl("api/move-to-next", post:true));
-                        }
-                    },
-                    repeatIfFailed:true));
+                            blockData = JsonConvert.DeserializeObject<TBlockData>(jsonText);
+                            onBlockRecieved?.Invoke(blockData);
+                            AddToOutpuText($"Got new block: {blockData.name}");
+                        },
+                        (errorCode) =>
+                        {
+// This happens only if /move-to-next needs to be called
+                            if (errorCode == 406)
+                            {
+                                AddToOutpuText("Server moving to next");
+                                StartCoroutine(GetJsonUrl("api/move-to-next", post:true));
+                            }
+                        },
+                        repeatIfFailed:true));
+            }
+            else
+            {
+                blockData = defaultData[currentDefaultDataIndex];
+                onBlockRecieved?.Invoke(blockData);
+                AddToOutpuText($"Got new block: {blockData.name}");
+            }
         }
 
         private void GetNextBlock()
         {
-            StartCoroutine(GetJsonUrl("api/move-to-next", (jsonText) =>
+            if (dataSource.useLocalData)
             {
-                TBlockData el = JsonConvert.DeserializeObject<TBlockData>(jsonText);
-                if (el.name != "end")
+                StartCoroutine(GetJsonUrl("api/move-to-next", (jsonText) =>
                 {
-                    GetConfig();
-                }
-                else
-                {
-                    Session.instance.End();
-                    StartCoroutine(GetJsonUrl("api/shutdown", null, post: true));
-                }
-            }, post: true));
+                    TBlockData el = JsonConvert.DeserializeObject<TBlockData>(jsonText);
+                    if (el.name != "end")
+                    {
+                        GetConfig();
+                    }
+                    else
+                    {
+                        Session.instance.End();
+                        StartCoroutine(GetJsonUrl("api/shutdown", null, post: true));
+                    }
+                }, post: true));
+            }
+            else
+            {
+                currentDefaultDataIndex++;
+                GetConfig();
+            }
         }
 
         /// <summary>

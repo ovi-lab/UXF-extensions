@@ -1,11 +1,12 @@
 {
-    "name": "ubco.ovilab.uxf.extensions",
+    "name": "ubco.ovilab.uxf.extensions.editor",
     "rootNamespace": "",
     "references": [
-        "GUID:581cccc347938044e8ae3adc4e6d3640",
-        "GUID:6055be8ebefd69e48b49212b09b47b2f"
+        "ubco.ovilab.uxf.extensions"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
