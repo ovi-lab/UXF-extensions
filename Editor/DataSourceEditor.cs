@@ -35,6 +35,7 @@ namespace ubco.ovilab.uxf.extensions.editor
             EditorGUILayout.PropertyField(experimentStartFrom0);
             GUI.enabled = guiEnabled;
             EditorGUI.indentLevel--;
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }

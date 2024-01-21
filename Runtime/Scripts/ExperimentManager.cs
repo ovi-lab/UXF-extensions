@@ -83,7 +83,7 @@ namespace ubco.ovilab.uxf.extensions
         private Dictionary<string, object> calibrationParameters;
         private int getJsonRetryCounter = 0;
 
-        private Dictionary<int, TBlockData> defaultData;
+        private List<TBlockData> defaultData;
         private int currentDefaultDataIndex = 0;
         #endregion
 
@@ -128,6 +128,15 @@ namespace ubco.ovilab.uxf.extensions
 
             if (dataSource.useLocalData)
             {
+                defaultData = JsonConvert.DeserializeObject<List<TBlockData>>(dataSource.configJsonFile.text);
+                participant_index = dataSource.participantIndex;
+                countDisplay_blockTotal = defaultData.Count;
+                Debug.Log($"Recieved session data (pp# {participant_index})");
+                AddToOutpuText($"Recieved session data (pp# {participant_index})");
+                GetConfig();
+            }
+            else
+            {
                 StartCoroutine(
 #if UNITY_EDITOR
                     /// Making sure to start from the begining when experimentStartFrom0 is true
@@ -149,14 +158,6 @@ namespace ubco.ovilab.uxf.extensions
                                post: dataSource.experimentStartFrom0,
 #endif
                                repeatIfFailed: true));
-            }
-            else
-            {
-                defaultData = JsonConvert.DeserializeObject<Dictionary<int,TBlockData>>(dataSource.configJsonFile.text);
-                participant_index = dataSource.participantIndex;
-                countDisplay_blockTotal = defaultData.Count;
-                Debug.Log($"Recieved session data (pp# {participant_index})");
-                AddToOutpuText($"Recieved session data (pp# {participant_index})");
             }
         }
         #endregion
@@ -495,6 +496,12 @@ namespace ubco.ovilab.uxf.extensions
         {
             if (dataSource.useLocalData)
             {
+                blockData = defaultData[currentDefaultDataIndex];
+                onBlockRecieved?.Invoke(blockData);
+                AddToOutpuText($"Got new block: {blockData.name}");
+            }
+            else
+            {
                 StartCoroutine(
                     GetJsonUrl(
                         "api/config",
@@ -515,17 +522,16 @@ namespace ubco.ovilab.uxf.extensions
                         },
                         repeatIfFailed:true));
             }
-            else
-            {
-                blockData = defaultData[currentDefaultDataIndex];
-                onBlockRecieved?.Invoke(blockData);
-                AddToOutpuText($"Got new block: {blockData.name}");
-            }
         }
 
         private void GetNextBlock()
         {
             if (dataSource.useLocalData)
+            {
+                currentDefaultDataIndex++;
+                GetConfig();
+            }
+            else
             {
                 StartCoroutine(GetJsonUrl("api/move-to-next", (jsonText) =>
                 {
@@ -540,11 +546,6 @@ namespace ubco.ovilab.uxf.extensions
                         StartCoroutine(GetJsonUrl("api/shutdown", null, post: true));
                     }
                 }, post: true));
-            }
-            else
-            {
-                currentDefaultDataIndex++;
-                GetConfig();
             }
         }
 
