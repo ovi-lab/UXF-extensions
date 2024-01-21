@@ -98,7 +98,7 @@ namespace ubco.ovilab.uxf.extensions
             sessionStarted = false;
             tryingToGetData = false;
             participant_index = -1;
-            outputText.text = "";
+            outputText?.SetText("");
 
             Session session = Session.instance;
             session.onSessionBegin.AddListener(OnSessionBeginBase);
@@ -110,10 +110,9 @@ namespace ubco.ovilab.uxf.extensions
 
             session.settingsToLog.AddRange(new List<string>(){ "blockName", "canceled", "calibrationName" });
 
-            startNextButton.onClick.AddListener(MoveToNextState);
-            startNextButtonText.text = "Start session";
-
-            displayText.text = askPrompt;
+            startNextButton?.onClick.AddListener(MoveToNextState);
+            startNextButtonText?.SetText("Start session");
+            displayText?.SetText(askPrompt);
         }
 
         /// <summary>
@@ -209,7 +208,7 @@ namespace ubco.ovilab.uxf.extensions
             OnBlockBegin(block);
             AddToOutpuText("Block: " + block.settings.GetString("blockName"));
             AddToCountText(true);
-            displayText.gameObject.SetActive(false);
+            displayText?.gameObject.SetActive(false);
             blockEnded = false;
             lastBlockCancelled = false;
         }
@@ -274,9 +273,12 @@ namespace ubco.ovilab.uxf.extensions
 
             blockEnded = true;
             AddToOutpuText("Ended Block: " + block.settings.GetString("blockName"));
-            displayText.gameObject.SetActive(true);
-            displayText.text = askPrompt;
-            startNextButtonText.text = "Calibration for next block?";
+            if (displayText != null)
+            {
+                displayText.gameObject.SetActive(true);
+                displayText.text = askPrompt;
+            }
+            startNextButtonText?.SetText("Calibration for next block?");
         }
 
         /// <summary>
@@ -294,7 +296,7 @@ namespace ubco.ovilab.uxf.extensions
             OnSessionEnd(session);
             Debug.Log($"Ending session");
             AddToOutpuText("Ending session");
-            startNextButton.gameObject.SetActive(false);
+            startNextButton?.gameObject.SetActive(false);
         }
 
         /// <summary>
@@ -338,7 +340,7 @@ namespace ubco.ovilab.uxf.extensions
                 // Makes sure the session doesn't get started again
                 sessionStarted = true;
                 AddToOutpuText("Session started");
-                startNextButtonText.text = "Run Calibration";
+                startNextButtonText?.SetText("Run Calibration");
                 return;
             }
             else if (!blockEnded)
@@ -357,7 +359,7 @@ namespace ubco.ovilab.uxf.extensions
                 countDisplay_blockTotal += 1;
 
                 AddToOutpuText("Cancelled block!");
-                startNextButtonText.text = "Run Calibration";
+                startNextButtonText?.SetText("Run Calibration");
 
                 // Ending current trial would also end block
                 Session.instance.EndCurrentTrial();
@@ -381,13 +383,13 @@ namespace ubco.ovilab.uxf.extensions
                                 calibrationState = CalibrationState.started;
                                 AddToOutpuText($"Running calibration - {calibrationName}");
                                 calibrationFunctions[calibrationName].Invoke(blockData);
-                                startNextButtonText.text = "...waiting";
+                                startNextButtonText?.SetText("...waiting");
                             }
                             else
                             {
                                 AddToOutpuText($"No calibration - {calibrationName}");
                                 calibrationState = CalibrationState.ended;
-                                startNextButtonText.text = "Run block";
+                                startNextButtonText?.SetText("Run block");
                             }
                             break;
                         }
@@ -399,7 +401,7 @@ namespace ubco.ovilab.uxf.extensions
                             ConfigureBlockBase(blockData);
                             blockData = null;
                             Session.instance.BeginNextTrial();
-                            startNextButtonText.text = "Cancel";
+                            startNextButtonText?.SetText("Cancel");
                             break;
                         }
                     }
@@ -414,7 +416,7 @@ namespace ubco.ovilab.uxf.extensions
             this.calibrationParameters = calibrationParameters;
             AddToOutpuText($"Calibration completed");
             calibrationState = CalibrationState.ended;
-            startNextButtonText.text = "Run block";
+            startNextButtonText?.SetText("Run block");
         }
 
         /// <inheritdoc />
@@ -529,25 +531,34 @@ namespace ubco.ovilab.uxf.extensions
         }
 
         /// <summary>
-        /// Add the message as a line in the <see cref="outputText"/>.
+        /// Print messages and add the message as a line in the <see cref="outputText"/> if it has been set.
         /// </summary>
         protected void AddToOutpuText(string message)
         {
             Debug.Log(message);
-            string[] slicedText = outputText.text.Split("\n");
-            if (slicedText.Length > 5)
+            if (outputText != null)
             {
-                slicedText = slicedText.Skip(1).ToArray();
+                string[] slicedText = outputText.text.Split("\n");
+                if (slicedText.Length > 5)
+                {
+                    slicedText = slicedText.Skip(1).ToArray();
+                }
+                outputText.text = string.Join("\n", slicedText) + $"\n{message}";
             }
-            outputText.text = string.Join("\n", slicedText) + $"\n{message}";
         }
 
         /// <summary>
         /// Add one and update the diplayed counts in <see cref="countText"/>.
+        /// If <see cref="countText"/> is not set, this does nothing.
         /// </summary>
         /// <param name="updateTotals">If true, recompute the total counts.</param>
         protected void AddToCountText(bool updateTotals=false)
         {
+            if (countText == null)
+            {
+                return;
+            }
+
             Session session = Session.instance;
             if (updateTotals)
             {
