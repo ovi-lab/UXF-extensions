@@ -1,10 +1,11 @@
 
 using System;
 using System.Collections.Generic;
+using UXF;
 
 namespace ubco.ovilab.uxf.extensions
 {
-    public interface IExperimentCalibration<out T>
+    public interface IExperimentManager<out T>
     {
         /// <summary>
         /// All calibration methods configured through
@@ -16,6 +17,7 @@ namespace ubco.ovilab.uxf.extensions
         /// recorded in the settings of the block
         /// (<see cref="ConfigureBlockBase"/>) </param>
         public void CalibrationComplete(Dictionary<string, object> calibrationParameters);
+
         /// <summary>
         /// Add a calibration method.  If the value of a given blocks
         /// <see cref="BlockData.calibrationName"/> matches this name,
@@ -28,5 +30,16 @@ namespace ubco.ovilab.uxf.extensions
         /// with a <see cref="BlockData"/> as parameter, which
         /// represents the current config of the block. </param>
         public void AddCalibrationMethod(String name, Action<T> action);
+
+        /// <SUMMARY>
+        /// Proceed to next state.
+        /// </summary>
+        public void MoveToNextState();
+
+        /// <summary>
+        /// Setup the initial values used when Session is started <see cref="UXF.Session.Begin"/>.
+        /// Calling after session starts will throw an <see cref="System.InvalidOperationException"/>
+        /// </summary>
+        public void SessionBeginParams(string studyName, int sessionNumber, Dictionary<string, object> participantDetails, Settings settings);
     }
 }

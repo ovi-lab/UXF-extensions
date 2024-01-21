@@ -17,7 +17,7 @@ namespace ubco.ovilab.uxf.extensions
     /// <see cref="BlockData"/> or any extension of it. Also provides
     /// abstractions to have a calibration phrase before each block.
     /// </summary>
-    public abstract class ExperimentManager<TBlockData> : MonoBehaviour, IExperimentCalibration<TBlockData> where TBlockData:BlockData
+    public abstract class ExperimentManager<TBlockData> : MonoBehaviour, IExperimentManager<TBlockData> where TBlockData:BlockData
     {
         [Header("UXF settings")]
         /// <summary>
@@ -71,6 +71,7 @@ namespace ubco.ovilab.uxf.extensions
         private System.Random random;
         private bool blockEnded = true;
         private bool sessionStarted = false;
+        private bool tryingToGetData = false;
         private bool lastBlockCancelled = false;
         private int participant_index = -1;
         private int countDisplay_blockNum, countDisplay_blockTotal, countDisplay_trialTotal;
@@ -95,6 +96,7 @@ namespace ubco.ovilab.uxf.extensions
         {
             blockEnded = true;
             sessionStarted = false;
+            tryingToGetData = false;
             participant_index = -1;
             outputText.text = "";
 
@@ -108,23 +110,18 @@ namespace ubco.ovilab.uxf.extensions
 
             session.settingsToLog.AddRange(new List<string>(){ "blockName", "canceled", "calibrationName" });
 
-            startNextButton.onClick.AddListener(OnGoToNextButtonClicked);
+            startNextButton.onClick.AddListener(MoveToNextState);
             startNextButtonText.text = "Start session";
 
-            // Strating the session after a few seconds
-            StartCoroutine(StartSessionAfterWait(session));
+            displayText.text = askPrompt;
         }
 
         /// <summary>
-        /// Delayed callback that starts the session after 2
-        /// seconds. Delay added to allow all hooks and setups to take
-        /// place.
+        /// Get the data necessary to start the session. Session starts after the data has been successfuly recieved and processed.
         /// </summary>
-        private IEnumerator StartSessionAfterWait(Session session)
+        private void GetSessionData()
         {
-            yield return new WaitForSeconds(2.0f);
-
-            displayText.text = askPrompt;
+            tryingToGetData = true;
 
             if (dataSource.useLocalData)
             {
@@ -307,13 +304,10 @@ namespace ubco.ovilab.uxf.extensions
         #endregion
 
         #region HELPER_FUNCTIONS
-        /// <summary>
-        /// Setup the initial values used when Session is started <see cref="UXF.Session.Begin"/>.
-        /// Calling after session starts will throw an <see cref="System.InvalidOperationException"/>
-        /// </summary>
+        /// <inheritdoc />
         public void SessionBeginParams(string studyName, int sessionNumber, Dictionary<string, object> participantDetails, Settings settings)
         {
-            if (sessionStarted)
+            if (Session.instance.hasInitialised)
             {
                 throw new InvalidOperationException("SessionBeginParams called after session started.");
             }
@@ -324,12 +318,14 @@ namespace ubco.ovilab.uxf.extensions
             initialSettings = settings;
         }
 
-        /// <SUMMARY>
-        /// Callback for the next button click event.
-        /// </summary>
-        private void OnGoToNextButtonClicked()
+        /// <inheritdoc />
+        public void MoveToNextState()
         {
-            if (!sessionStarted && !Session.instance.hasInitialised)
+            if (!sessionStarted && blockData == null && !tryingToGetData)
+            {
+                GetSessionData();
+            }
+            else if (!sessionStarted && !Session.instance.hasInitialised)
             {
                 if (participant_index == -1)
                 {
@@ -345,8 +341,7 @@ namespace ubco.ovilab.uxf.extensions
                 startNextButtonText.text = "Run Calibration";
                 return;
             }
-
-            if (!blockEnded)
+            else if (!blockEnded)
             {
                 // We want to stop the block now!
 
@@ -481,6 +476,7 @@ namespace ubco.ovilab.uxf.extensions
                 blockData = defaultData[currentDefaultDataIndex];
                 onBlockRecieved?.Invoke(blockData);
                 AddToOutpuText($"Got new block: {blockData.name}");
+                tryingToGetData = false;
             }
             else
             {
@@ -492,6 +488,7 @@ namespace ubco.ovilab.uxf.extensions
                             blockData = JsonConvert.DeserializeObject<TBlockData>(jsonText);
                             onBlockRecieved?.Invoke(blockData);
                             AddToOutpuText($"Got new block: {blockData.name}");
+                            tryingToGetData = false;
                         },
                         (errorCode) =>
                         {
