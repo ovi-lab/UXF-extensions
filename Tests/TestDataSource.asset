@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4b4d8388989e4d498d280656310192d, type: 3}
+  m_Name: TestDataSource
+  m_EditorClassIdentifier: 
+  useLocalData: 1
+  participantIndex: 300
+  configJsonFile: {fileID: 4900000, guid: 2cb0054af60847645b45afd1eb189a9d, type: 3}
+  experimentServerUrl: http://127.0.0.1:5000
+  experimentStartFrom0: 0

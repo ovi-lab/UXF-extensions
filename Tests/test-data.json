@@ -1,0 +1,12 @@
+[
+  {
+    "calibrationName": "test1",
+    "participant_index": 300,
+    "name": "test1"
+  },
+  {
+    "calibrationName": "test2",
+    "participant_index": 300,
+    "name": "test2"
+  }
+]
