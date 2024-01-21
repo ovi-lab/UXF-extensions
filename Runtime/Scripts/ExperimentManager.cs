@@ -509,8 +509,14 @@ namespace ubco.ovilab.uxf.extensions
         {
             if (dataSource.useLocalData)
             {
-                currentDefaultDataIndex++;
-                GetConfig();
+                if(++currentDefaultDataIndex != defaultData.Count)
+                {
+                    GetConfig();
+                }
+                else
+                {
+                    Session.instance.End();
+                }
             }
             else
             {
