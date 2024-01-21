@@ -6,17 +6,18 @@ skinparam legend {
 
 legend top
   <#GhostWhite,#GhostWhite>|        |= __Legend__ |
-  |<#lightpink>   | UI interactions during experiment|
+  |<#lightpink>   | UI interactions during experiment or call to ""MoveToNextState""|
   |<#lightgreen>  | Abstract function in ""ExperimentManager"" to be implemented by user|
 endlegend
 
 |__in-package__|
 start
+#lightpink:Click next button ("Load session data") or call ""MoveToNextState"";
 |#FloralWhite|__user-defined__|
 :(optional) Set ""UXF.Session.Being"" parameters
 with ""ExperimentManager.SessionBeginParams"";
 |__in-package__|
-#lightpink:Click next button ("Start Session");
+#lightpink:Click next button ("Start Session") or call ""MoveToNextState"";
 :""OnSessionBegin""  called;
 |__user-defined__|
 #lightgreen:""OnSessionBegin"";
@@ -24,7 +25,7 @@ with ""ExperimentManager.SessionBeginParams"";
 
 while (Get config for block from experiment server (""block_data"")) is (not end block)
 
-    #lightpink:Click next button ("Run Calibration");
+    #lightpink:Click next button ("Run Calibration") or call ""MoveToNextState"";
     if (calibration function exists) then (yes)
         |__user-defined__|
         :Run calibration;
@@ -39,7 +40,7 @@ while (Get config for block from experiment server (""block_data"")) is (not end
     #lightgreen:""ConfigureBlock"";
 
     |__in-package__|
-    #lightpink:Click next button ("Run Block");
+    #lightpink:Click next button ("Run Block") or call ""MoveToNextState"";
     :""OnBlockBegin""  called;
 
     |__user-defined__|
@@ -55,7 +56,7 @@ while (Get config for block from experiment server (""block_data"")) is (not end
 
         split
             |__in-package__|
-            #lightpink:Cancel button pressed;
+            #lightpink:Cancel button pressed or call ""MoveToNextState"";
         split again
             |__user-defined__|
             :Participant performs trial;

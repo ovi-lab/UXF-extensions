@@ -54,17 +54,17 @@ namespace ubco.ovilab.uxf.extensions
         public UnityEvent<TBlockData> onBlockRecieved = new UnityEvent<TBlockData>();
 
         [Space(3)][Header("Canvas UI setup")]
-        [Tooltip("The string to display on `displayText`")]
+        [Tooltip("(optional) The string to display on `Display Text`")]
         [Multiline][SerializeField] private string askPrompt = "When ready ask researcher to proceed with the experiment";
-        [Tooltip("The UI button used to move to next/cancel.")]
+        [Tooltip("(optional) The UI button used to move to next/cancel. Note that if not set, `MoveToNextState` has to be called to proceed through experiments.")]
         [SerializeField] private Button startNextButton;
-        [Tooltip("The text where the logs gets printed.")]
+        [Tooltip("(optional) The text where the logs gets printed.")]
         [SerializeField] private TMPro.TMP_Text outputText;
-        [Tooltip("The text in the environment where relevant promts will be displayed.")]
+        [Tooltip("(optional) The text in the environment where relevant promts will be displayed.")]
         [SerializeField] protected TMPro.TMP_Text displayText;
-        [Tooltip("The text which shows the current trial/block counts.")]
+        [Tooltip("(optional) The text which shows the current trial/block counts.")]
         [SerializeField] private TMPro.TMP_Text countText;
-        [Tooltip("The text of the start next button.")]
+        [Tooltip("(optional) The text of the start next button. When `Start Next Button` is set, this would help indicate the current state of the progress on screen.")]
         [SerializeField] private TMPro.TMP_Text startNextButtonText;
 
         #region HIDDEN_VARIABLES
@@ -111,7 +111,7 @@ namespace ubco.ovilab.uxf.extensions
             session.settingsToLog.AddRange(new List<string>(){ "blockName", "canceled", "calibrationName" });
 
             startNextButton?.onClick.AddListener(MoveToNextState);
-            startNextButtonText?.SetText("Start session");
+            startNextButtonText?.SetText("Load session data");
             displayText?.SetText(askPrompt);
         }
 
@@ -121,6 +121,8 @@ namespace ubco.ovilab.uxf.extensions
         private void GetSessionData()
         {
             tryingToGetData = true;
+
+            startNextButtonText?.SetText("Start session");
 
             if (dataSource.useLocalData)
             {
