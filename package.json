@@ -13,5 +13,12 @@
         "email": "shariff.mfa@outlook.com"
     },
     "scopedRegistries": [
+    ],
+    "samples":[
+      {
+        "displayName": "Sample experiment-server setup",
+        "description": "Config files to setup the experiment server. Copy the direcotry in `Assets/Samples/UXF extensions/0.1.1/Sample experiment-server setup` to the root of the unity project (e.g. `External`).",
+        "path": "Samples~/External/"
+      }
     ]
 }
