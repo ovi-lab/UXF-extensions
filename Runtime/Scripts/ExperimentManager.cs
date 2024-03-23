@@ -122,8 +122,6 @@ namespace ubco.ovilab.uxf.extensions
         {
             tryingToGetData = true;
 
-            startNextButtonText?.SetText("Start session");
-
             if (dataSource.useLocalData)
             {
                 defaultData = JsonConvert.DeserializeObject<List<TBlockData>>(dataSource.configJsonFile.text);
@@ -132,6 +130,7 @@ namespace ubco.ovilab.uxf.extensions
                 Debug.Log($"Recieved session data (pp# {participant_index})");
                 AddToOutpuText($"Recieved session data (pp# {participant_index})");
                 GetConfig();
+                startNextButtonText?.SetText("Start session");
             }
             else
             {
@@ -143,14 +142,15 @@ namespace ubco.ovilab.uxf.extensions
                     GetJsonUrl("api/active",
 #endif
                                (idx) =>
-                               StartCoroutine(GetJsonUrl("api/global-data", (jsonText) =>
+                               StartCoroutine(GetJsonUrl("api/summary-data", (jsonText) =>
                                {
-                                   ConfigGlobalData data = JsonConvert.DeserializeObject<ConfigGlobalData>(jsonText);
+                                   ConfigSummaryData data = JsonConvert.DeserializeObject<ConfigSummaryData>(jsonText);
                                    participant_index = data.participant_index;
                                    countDisplay_blockTotal = data.config_length;
                                    Debug.Log($"Recieved session data (pp# {participant_index}): {jsonText}");
                                    AddToOutpuText($"Recieved session data (pp# {participant_index}): {jsonText}");
                                    GetConfig();
+                                   startNextButtonText?.SetText("Start session");
                                })),
 #if UNITY_EDITOR
                                post: dataSource.experimentStartFrom0,
@@ -583,12 +583,12 @@ namespace ubco.ovilab.uxf.extensions
         }
     }
 
-    internal struct ConfigGlobalData
+    internal struct ConfigSummaryData
     {
         public int participant_index;
         public int config_length;
 
-        public ConfigGlobalData(int participant_index, int config_length)
+        public ConfigSummaryData(int participant_index, int config_length)
         {
             this.participant_index = participant_index;
             this.config_length = config_length;
