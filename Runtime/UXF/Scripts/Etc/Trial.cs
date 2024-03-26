@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using UnityEngine;
 using System.Collections.Specialized;
-
+using System.Threading.Tasks;
 
 namespace UXF
 {
@@ -277,7 +277,10 @@ namespace UXF
                     tracker.StopRecording();
                     if (tracker.Data.CountRows() > 0)
                     {
-                        SaveDataTable(tracker.Data, tracker.DataName, dataType: UXFDataType.Trackers);
+                        ManageInWorker(() =>
+                        {
+                            SaveDataTable(tracker.Data, tracker.DataName, dataType: UXFDataType.Trackers);
+                        });
                     }
                 }
                 catch (NullReferenceException)
@@ -292,6 +295,32 @@ namespace UXF
                 result[s] = settings.GetObject(s, string.Empty);
             }
         }
+
+        /// <summary>
+        /// Adds a new command to a queue which is executed in a separate worker thread when it is available.
+        /// Warning: The Unity Engine API is not thread safe, so do not attempt to put any Unity commands here.
+        /// </summary>
+        /// <param name="action"></param>
+        public static void ManageInWorker(System.Action action)
+        {
+            Task t = Task.Factory.StartNew(() =>  // Wrapper to handle errors, logging and CultureInfo
+            {
+                try
+                {
+                    action.Invoke();
+                }
+                catch (ThreadAbortException)
+                {
+                    return;
+                }
+                catch (System.Exception e)
+                {
+                    // stops thread aborting upon an exception
+                    Debug.LogException(e);
+                }
+            }, TaskCreationOptions.LongRunning);
+        }
+
     }
 
     

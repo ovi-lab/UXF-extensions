@@ -4,7 +4,9 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System;
 using System.IO;
-
+using System.Net.Http;
+using System.Text;
+using Newtonsoft.Json;
 
 namespace UXF
 {
@@ -27,6 +29,12 @@ namespace UXF
         public string username = "susan";
         [BasteRainGames.HideIf("httpBasicAuthentication", false)]
         public string password = "password";
+        private HttpClient httpClient;
+
+        public override void SetUp()
+        {
+            httpClient = new HttpClient();
+        }
 
 
         public override bool CheckIfRiskOfOverwrite(string experiment, string ppid, int sessionNum, string rootPath = "")
@@ -159,21 +167,23 @@ namespace UXF
 
         void AuthenticatedRequest(string filepath, string data)
         {
-            WWWForm form = new WWWForm();
-            form.AddField(filepathKey, filepath);
-            form.AddField(dataKey, data);
-
-            UnityWebRequest www = UnityWebRequest.Post(url, form);
-
-            if (httpBasicAuthentication)
+            try
             {
-                string auth = username + ":" + password;
-                auth = System.Convert.ToBase64String(System.Text.Encoding.GetEncoding("ISO-8859-1").GetBytes(auth));
-                auth = "Basic " + auth;
-                www.SetRequestHeader("AUTHORIZATION", auth);
-            }
+                Dictionary<string, string> payloadObj = new Dictionary<string, string>()
+                {
+                    {filepathKey, filepath},
+                    {dataKey, data}
+                };
 
-            StartCoroutine(SendRequest(www));
+                string payload = JsonConvert.SerializeObject(payloadObj);
+
+                StringContent content = new StringContent(payload, Encoding.UTF8, "application/json");
+                httpClient.PostAsync(url, content);
+            }
+            catch (HttpRequestException e)
+            {
+                Utilities.UXFDebugLogError(e.Message);
+            }
         }
 
         IEnumerator SendRequest(UnityWebRequest www)

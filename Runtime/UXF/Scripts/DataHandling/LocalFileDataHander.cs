@@ -31,7 +31,7 @@ namespace UXF
             {
                 if (dataSaveLocation == DataSaveLocation.PersistentDataPath)
                 {
-                    return Application.persistentDataPath;
+                    return applicationPersistentDataPath;
                 }
                 else
                 {
@@ -46,6 +46,13 @@ namespace UXF
                 }
                 storagePath = value;
             }
+        }
+
+        private string applicationPersistentDataPath;
+
+        private void Awake()
+        {
+            applicationPersistentDataPath = Application.persistentDataPath;
         }
 
         /// <summary>
