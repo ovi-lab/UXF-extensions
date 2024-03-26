@@ -22,6 +22,7 @@ with ""ExperimentManager.SessionBeginParams"";
 |__user-defined__|
 #lightgreen:""OnSessionBegin"";
 |#Azure|__in-package__|
+#lightpink:Click next button ("Get Config") or call ""MoveToNextState"";
 
 while (Get config for block from experiment server (""block_data"")) is (not end block)
 
@@ -87,6 +88,7 @@ while (Get config for block from experiment server (""block_data"")) is (not end
         :Move to next block;
     else (yes)
     endif
+    #lightpink:Click next button ("Get Config") or call ""MoveToNextState"";
 
 endwhile (end block)
 

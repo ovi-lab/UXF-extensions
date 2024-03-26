@@ -72,6 +72,7 @@ namespace ubco.ovilab.uxf.extensions
         private bool blockEnded = true;
         private bool sessionStarted = false;
         private bool tryingToGetData = false;
+        private bool waitToGetData = false;
         private bool lastBlockCancelled = false;
         private int participant_index = -1;
         private int countDisplay_blockNum, countDisplay_blockTotal, countDisplay_trialTotal;
@@ -97,6 +98,7 @@ namespace ubco.ovilab.uxf.extensions
             blockEnded = true;
             sessionStarted = false;
             tryingToGetData = false;
+            waitToGetData = false;
             participant_index = -1;
             outputText?.SetText("");
 
@@ -263,16 +265,6 @@ namespace ubco.ovilab.uxf.extensions
             // Adding block information to setting to allow it to be logged
             Session.instance.settings.SetValue($"Block_{block.number}", block.settings.baseDict);
 
-            // Get next only when current block was not cancelled
-            if (block.settings.GetBool("canceled"))
-            {
-                GetConfig();
-            }
-            else
-            {
-                GetNextBlock();
-            }
-
             blockEnded = true;
             AddToOutpuText("Ended Block: " + block.settings.GetString("blockName"));
             if (displayText != null)
@@ -280,7 +272,8 @@ namespace ubco.ovilab.uxf.extensions
                 displayText.gameObject.SetActive(true);
                 displayText.text = askPrompt;
             }
-            startNextButtonText?.SetText("Calibration for next block?");
+            startNextButtonText?.SetText("Get config");
+            waitToGetData = true;
         }
 
         /// <summary>
@@ -361,7 +354,6 @@ namespace ubco.ovilab.uxf.extensions
                 countDisplay_blockTotal += 1;
 
                 AddToOutpuText("Cancelled block!");
-                startNextButtonText?.SetText("Run Calibration");
 
                 // Ending current trial would also end block
                 Session.instance.EndCurrentTrial();
@@ -370,7 +362,14 @@ namespace ubco.ovilab.uxf.extensions
             {
                 if (blockData == null)
                 {
-                    AddToOutpuText("Block still not available");
+                    if (waitToGetData)
+                    {
+                        GetNextOrCurrentConfig();
+                    }
+                    else
+                    {
+                        AddToOutpuText("Block still not available");
+                    }
                 }
                 else
                 {
@@ -473,6 +472,22 @@ namespace ubco.ovilab.uxf.extensions
 
         }
 
+        private void GetNextOrCurrentConfig()
+        {
+            // Get next only when current block was not cancelled
+            if (lastBlockCancelled)
+            {
+                GetConfig();
+            }
+            else
+            {
+                GetNextBlock();
+            }
+            waitToGetData = false;
+
+            startNextButtonText?.SetText("Run calibration");
+        }
+
         private void GetConfig()
         {
             if (dataSource.useLocalData)
@@ -525,14 +540,13 @@ namespace ubco.ovilab.uxf.extensions
                 StartCoroutine(GetJsonUrl("api/move-to-next", (jsonText) =>
                 {
                     TBlockData el = JsonConvert.DeserializeObject<TBlockData>(jsonText);
-                    if (el.name != "end")
+                    if (el.name != "END")
                     {
                         GetConfig();
                     }
                     else
                     {
                         Session.instance.End();
-                        StartCoroutine(GetJsonUrl("api/shutdown", null, post: true));
                     }
                 }, post: true));
             }
