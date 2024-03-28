@@ -277,9 +277,11 @@ namespace UXF
                     tracker.StopRecording();
                     if (tracker.Data.CountRows() > 0)
                     {
+                        UXFDataTable table = tracker.Data;
+                        string name = tracker.DataName;
                         ManageInWorker(() =>
                         {
-                            SaveDataTable(tracker.Data, tracker.DataName, dataType: UXFDataType.Trackers);
+                            SaveDataTable(table, name, dataType: UXFDataType.Trackers);
                         });
                     }
                 }
