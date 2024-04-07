@@ -178,12 +178,14 @@ namespace UXF
         {
             if (!CheckDataTypeIsValid(dataName, dataType)) dataType = UXFDataType.OtherTrialData;
 
+            started++;
             int i = 0;
             foreach(var dataHandler in session.ActiveDataHandlers)
             {
                 string location = dataHandler.HandleDataTable(table, session.experimentName, session.ppid, session.number, dataName, dataType, number);
                 result[string.Format("{0}_location_{1}", dataName, i++)] = location.Replace("\\", "/");
             }
+            finished++;
         }
 
         /// <summary>
@@ -269,6 +271,8 @@ namespace UXF
 
             if (duplicateTrackers.Any()) throw new InvalidOperationException(string.Format("Two or more trackers in the Tracked Objects field in the Session Inspector have the following object name and descriptor pair, please change the object name fields on the trackers to make them unique: {0}", string.Join(",", duplicateTrackers)));
 
+            Debug.Log($"Errors: {errorHappened};    threadend: {threadend};    scheduled: {scheduled};    started: {started};    finished: {finished}");
+
             // log tracked objects
             foreach (Tracker tracker in session.trackedObjects)
             {
@@ -279,6 +283,7 @@ namespace UXF
                     {
                         UXFDataTable table = tracker.Data;
                         string name = tracker.DataName;
+                        scheduled++;
                         ManageInWorker(() =>
                         {
                             SaveDataTable(table, name, dataType: UXFDataType.Trackers);
@@ -310,22 +315,30 @@ namespace UXF
                 try
                 {
                     action.Invoke();
+                    threadend++;
                 }
                 catch (ThreadAbortException)
                 {
+                    errorHappened++;
                     return;
                 }
                 catch (System.Exception e)
                 {
                     // stops thread aborting upon an exception
                     Debug.LogException(e);
+                    errorHappened++;
                 }
-            }, TaskCreationOptions.LongRunning);
+            }, TaskCreationOptions.LongRunning | TaskCreationOptions.PreferFairness);
         }
 
-    }
+        static int errorHappened = 0,
+            finished = 0,
+            started = 0,
+            threadend = 0,
+            scheduled = 0;
 
-    
+
+    }
 
     /// <summary>
     /// Status of a trial
