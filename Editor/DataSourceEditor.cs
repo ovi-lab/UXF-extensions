@@ -8,7 +8,6 @@ namespace ubco.ovilab.uxf.extensions.editor
     public class DataSourceEditor: Editor
     {
         SerializedProperty useLocalDataProp;
-        SerializedProperty participantIndex;
         SerializedProperty configJsonFile;
         SerializedProperty experimentServerUrl;
         SerializedProperty experimentStartFrom0;
@@ -16,7 +15,6 @@ namespace ubco.ovilab.uxf.extensions.editor
         private void OnEnable()
         {
             useLocalDataProp = serializedObject.FindProperty("useLocalData");
-            participantIndex = serializedObject.FindProperty("participantIndex");
             configJsonFile = serializedObject.FindProperty("configJsonFile");
             experimentServerUrl = serializedObject.FindProperty("experimentServerUrl");
             experimentStartFrom0 = serializedObject.FindProperty("experimentStartFrom0");
@@ -28,7 +26,6 @@ namespace ubco.ovilab.uxf.extensions.editor
             EditorGUILayout.PropertyField(useLocalDataProp);
             bool guiEnabled = GUI.enabled;
             GUI.enabled = useLocalDataProp.boolValue;
-            EditorGUILayout.PropertyField(participantIndex);
             EditorGUILayout.PropertyField(configJsonFile);
             GUI.enabled = !useLocalDataProp.boolValue;
             EditorGUILayout.PropertyField(experimentServerUrl);

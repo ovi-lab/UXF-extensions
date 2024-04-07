@@ -8,7 +8,6 @@ namespace ubco.ovilab.uxf.extensions
         [Tooltip("If set, will use the data set in `Config Json File`")]
         public bool useLocalData = false;
 
-        public int participantIndex;
         public TextAsset configJsonFile;
 
         [Tooltip("The url address to the experiment server.")]

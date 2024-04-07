@@ -127,7 +127,8 @@ namespace ubco.ovilab.uxf.extensions
             if (dataSource.useLocalData)
             {
                 defaultData = JsonConvert.DeserializeObject<List<TBlockData>>(dataSource.configJsonFile.text);
-                participant_index = dataSource.participantIndex;
+                Debug.Assert(defaultData.Select(d => d.participant_index).Distinct().Count() == 1, "There are more than 1 distinct participant indices in the provided config file");
+                participant_index = defaultData[0].participant_index;
                 countDisplay_blockTotal = defaultData.Count;
                 Debug.Log($"Recieved session data (pp# {participant_index})");
                 AddToOutpuText($"Recieved session data (pp# {participant_index})");
