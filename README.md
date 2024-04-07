@@ -22,6 +22,6 @@ There are two ways to use data from the `experiment_server`
 
 Create a `DataSource` asset (in the create asset menue *UXF* > *Extensions* > *DataSource*) and configure how the data is loaded.
 
-In the Unity Scene, ensure the extended implemenation of `ExperimentManager` class is setup with the `DataSource` added, setup the button and UI elements and provide the session details. If these values are not being set, this can also be done programatically with `ExperimentManager.SessionBeginParams` and `ExperimentManager.MoveToNextState`.
+In the Unity Scene, ensure the extended implemenation of `ExperimentManager` class is setup with the `DataSource` added, setup the button and UI elements and provide the session details. If these values are not being set, this can also be done programatically with `ExperimentManager.SessionBeginParams` and `ExperimentManager.MoveToNextState`. Note that you also can use the [UXF UI](https://github.com/immersivecognition/unity-experiment-framework/wiki/Built-in-UI) to start a session. If using the UXF UI to provide the participant id, it is expected to be an integer.
 
 See documentation on [`ubc.ok.ovilab.uxf.extensions.ExperimentManager`](Assets/Scripts/ExperimentManager.cs) for more details.

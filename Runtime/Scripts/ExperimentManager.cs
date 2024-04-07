@@ -19,7 +19,6 @@ namespace ubco.ovilab.uxf.extensions
     /// </summary>
     public abstract class ExperimentManager<TBlockData> : MonoBehaviour, IExperimentManager<TBlockData> where TBlockData:BlockData
     {
-        [Header("UXF settings")]
         /// <summary>
         /// The study name used when starting session (See Session.Begin).
         /// This could be overridden by calling <see cref="SessionBeginParams"/>
@@ -29,31 +28,18 @@ namespace ubco.ovilab.uxf.extensions
 
         /// <summary>
         /// The sesstion ID used when starting session (See Session.Begin).
-        /// This could be overridden by calling <see cref="SessionBeginParams"/>
+        /// This could be overridden by calling <see cref="SessionBeginParams"/>.
+        /// If UXF UI is used to start a session, the value provided there is taken precedence.
         /// </summary>
-        [Tooltip("The sesstion ID used when starting session (See Session.Begin).")]
+        [Tooltip("The sesstion ID used when starting session (See Session.Begin). If UXF UI is used to start a session, the value provided there is taken precedence.")]
         [SerializeField] public int sessionNumber = 1;
-
-        /// <summary>
-        /// The initial settings used when starting a Session (See <see cref="UXF.Session.Begin"/>)
-        /// This could be overridden by calling <see cref="SessionBeginParams"/>
-        /// </summary>
-        public Settings initialSettings;
-
-        /// <summary>
-        /// The initial participant details used when starting a Session (See <see cref="UXF.Session.Begin"/>)
-        /// This could be overridden by calling <see cref="SessionBeginParams"/>
-        /// </summary>
-        public Dictionary<string, object> initialParticipantDetails;
 
         [Tooltip("Data source being used.")]
         public DataSource dataSource;
 
-        [Space(3)][Header("Extension events")]
         [Tooltip("Event called when block data is recieved.")]
         public UnityEvent<TBlockData> onBlockRecieved = new UnityEvent<TBlockData>();
 
-        [Space(3)][Header("Canvas UI setup")]
         [Tooltip("(optional) The string to display on `Display Text`")]
         [Multiline][SerializeField] private string askPrompt = "When ready ask researcher to proceed with the experiment";
         [Tooltip("(optional) The UI button used to move to next/cancel. Note that if not set, `MoveToNextState` has to be called to proceed through experiments.")]
@@ -65,9 +51,11 @@ namespace ubco.ovilab.uxf.extensions
         [Tooltip("(optional) The text which shows the current trial/block counts.")]
         [SerializeField] private TMPro.TMP_Text countText;
         [Tooltip("(optional) The text of the start next button. When `Start Next Button` is set, this would help indicate the current state of the progress on screen.")]
-        [SerializeField] private TMPro.TMP_Text startNextButtonText;
 
         #region HIDDEN_VARIABLES
+        private Settings initialSettings;
+        private Dictionary<string, object> initialParticipantDetails;
+        private TMPro.TMP_Text startNextButtonText;
         private System.Random random;
         private bool blockEnded = true;
         private bool sessionStarted = false;
@@ -113,6 +101,7 @@ namespace ubco.ovilab.uxf.extensions
             session.settingsToLog.AddRange(new List<string>(){ "blockName", "canceled", "calibrationName" });
 
             startNextButton?.onClick.AddListener(MoveToNextState);
+            startNextButtonText = startNextButton.GetComponentInChildren<TMPro.TMP_Text>();
             startNextButtonText?.SetText("Load session data");
             displayText?.SetText(askPrompt);
         }
