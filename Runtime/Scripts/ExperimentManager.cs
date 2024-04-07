@@ -118,9 +118,9 @@ namespace ubco.ovilab.uxf.extensions
         }
 
         /// <summary>
-        /// Get the data necessary to start the session. Session starts after the data has been successfuly recieved and processed.
+        /// Get the data necessary to initiate the session.
         /// </summary>
-        private void GetSessionData()
+        private void InitiateSessionStart(string nextButtonTextOndataRecieved)
         {
             tryingToGetData = true;
 
@@ -128,12 +128,16 @@ namespace ubco.ovilab.uxf.extensions
             {
                 defaultData = JsonConvert.DeserializeObject<List<TBlockData>>(dataSource.configJsonFile.text);
                 Debug.Assert(defaultData.Select(d => d.participant_index).Distinct().Count() == 1, "There are more than 1 distinct participant indices in the provided config file");
-                participant_index = defaultData[0].participant_index;
                 countDisplay_blockTotal = defaultData.Count;
+
+                if (!sessionStarted)
+                {
+                    participant_index = defaultData[0].participant_index;
+                }
                 Debug.Log($"Recieved session data (pp# {participant_index})");
                 AddToOutpuText($"Recieved session data (pp# {participant_index})");
                 GetConfig();
-                startNextButtonText?.SetText("Start session");
+                startNextButtonText?.SetText(nextButtonTextOndataRecieved);
             }
             else
             {
@@ -148,12 +152,16 @@ namespace ubco.ovilab.uxf.extensions
                                StartCoroutine(GetJsonUrl("api/summary-data", (jsonText) =>
                                {
                                    ConfigSummaryData data = JsonConvert.DeserializeObject<ConfigSummaryData>(jsonText);
-                                   participant_index = data.participant_index;
                                    countDisplay_blockTotal = data.config_length;
+
+                                   if (!sessionStarted)
+                                   {
+                                       participant_index = data.participant_index;
+                                   }
                                    Debug.Log($"Recieved session data (pp# {participant_index}): {jsonText}");
                                    AddToOutpuText($"Recieved session data (pp# {participant_index}): {jsonText}");
                                    GetConfig();
-                                   startNextButtonText?.SetText("Start session");
+                                   startNextButtonText?.SetText(nextButtonTextOndataRecieved);
                                })),
 #if UNITY_EDITOR
                                post: dataSource.experimentStartFrom0,
@@ -169,6 +177,15 @@ namespace ubco.ovilab.uxf.extensions
         /// </summary>
         private void OnSessionBeginBase(Session session)
         {
+            if (!sessionStarted)
+            {
+                sessionStarted = true;
+                participant_index = int.Parse(Session.instance.ppid.Trim());
+                Session.instance.settings.SetValue("participant_index", participant_index);
+                AddToOutpuText("Session started");
+                InitiateSessionStart("Run calibration");
+            }
+
             OnSessionBegin(session);
         }
 
@@ -321,7 +338,7 @@ namespace ubco.ovilab.uxf.extensions
         {
             if (!sessionStarted && blockData == null && !tryingToGetData)
             {
-                GetSessionData();
+                InitiateSessionStart("Start session");
             }
             else if (!sessionStarted && !Session.instance.hasInitialised)
             {
