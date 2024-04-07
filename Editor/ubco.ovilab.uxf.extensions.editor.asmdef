@@ -2,7 +2,8 @@
     "name": "ubco.ovilab.uxf.extensions.editor",
     "rootNamespace": "",
     "references": [
-        "ubco.ovilab.uxf.extensions"
+        "ubco.ovilab.uxf.extensions",
+        "UXF"
     ],
     "includePlatforms": [
         "Editor"

@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using UXF;
@@ -40,6 +39,6 @@ namespace ubco.ovilab.uxf.extensions
         /// Setup the initial values used when Session is started <see cref="UXF.Session.Begin"/>.
         /// Calling after session starts will throw an <see cref="System.InvalidOperationException"/>
         /// </summary>
-        public void SessionBeginParams(string studyName, int sessionNumber, Dictionary<string, object> participantDetails, Settings settings);
+        public void SessionBeginParams(string experimentName, int sessionNumber, Dictionary<string, object> participantDetails, Settings settings);
     }
 }

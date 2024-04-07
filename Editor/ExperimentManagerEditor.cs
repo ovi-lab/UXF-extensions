@@ -1,4 +1,7 @@
+using UnityEngine;
 using UnityEditor;
+using UXF.UI;
+using UnityEditorInternal;
 
 namespace ubco.ovilab.uxf.extensions.editor
 {
@@ -9,7 +12,9 @@ namespace ubco.ovilab.uxf.extensions.editor
         protected string[] processedSerializedProps;
         private bool showEvents;
         private SerializedProperty scriptProp;
-        private SerializedProperty studyNameProp;
+        private SerializedProperty uxfUIProp;
+        private SerializedProperty uxfUIStartupMode;
+        private SerializedProperty experimentNameProp;
         private SerializedProperty sessionNumberProp;
         private SerializedProperty dataSourceProp;
         private SerializedProperty onBlockRecievedProp;
@@ -24,7 +29,9 @@ namespace ubco.ovilab.uxf.extensions.editor
             processedSerializedProps = new string[]
             {
                 "m_Script",
-                "studyName",
+                "UXFUIController",
+                "UXFUIStartupMode",
+                "experimentName",
                 "sessionNumber",
                 "dataSource",
                 "onBlockRecieved",
@@ -35,7 +42,9 @@ namespace ubco.ovilab.uxf.extensions.editor
             };
 
             scriptProp = serializedObject.FindProperty("m_Script");
-            studyNameProp = serializedObject.FindProperty("studyName");
+            uxfUIProp = serializedObject.FindProperty("UXFUIController");
+            uxfUIStartupMode = serializedObject.FindProperty("UXFUIStartupMode");
+            experimentNameProp = serializedObject.FindProperty("experimentName");
             sessionNumberProp = serializedObject.FindProperty("sessionNumber");
             dataSourceProp = serializedObject.FindProperty("dataSource");
             onBlockRecievedProp = serializedObject.FindProperty("onBlockRecieved");
@@ -50,8 +59,16 @@ namespace ubco.ovilab.uxf.extensions.editor
             EditorGUILayout.PropertyField(scriptProp);
 
             EditorGUILayout.LabelField("UXF settings", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(studyNameProp);
+            EditorGUILayout.PropertyField(experimentNameProp);
             EditorGUILayout.PropertyField(sessionNumberProp);
+            EditorGUILayout.PropertyField(uxfUIProp);
+            EditorGUILayout.PropertyField(uxfUIStartupMode);
+            if (GUILayout.Button("Configure UXF UI"))
+            {
+                Object ui = uxfUIProp.objectReferenceValue;
+                Selection.activeObject = ui;
+                InternalEditorUtility.SetIsInspectorExpanded(ui, true);
+            }
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("UXF Extensions settings", EditorStyles.boldLabel);

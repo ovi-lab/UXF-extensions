@@ -8,6 +8,11 @@ using System.Linq;
 using System;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using UXF.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 
 namespace ubco.ovilab.uxf.extensions
 {
@@ -19,12 +24,17 @@ namespace ubco.ovilab.uxf.extensions
     /// </summary>
     public abstract class ExperimentManager<TBlockData> : MonoBehaviour, IExperimentManager<TBlockData> where TBlockData:BlockData
     {
+        private const string UXF_RIG_PATH = "Packages/ubco.ovilab.uxf.extensions/Runtime/UXF/Prefabs/[UXF_Rig].prefab";
+
+        [SerializeField] private UIController UXFUIController;
+        [SerializeField] private StartupMode UXFUIStartupMode;
+
         /// <summary>
         /// The study name used when starting session (See Session.Begin).
         /// This could be overridden by calling <see cref="SessionBeginParams"/>
         /// </summary>
         [Tooltip("The study name used when starting session (See Session.Begin).")]
-        [SerializeField] public string studyName = "study";
+        [SerializeField] public string experimentName = "study";
 
         /// <summary>
         /// The sesstion ID used when starting session (See Session.Begin).
@@ -90,6 +100,8 @@ namespace ubco.ovilab.uxf.extensions
             participant_index = -1;
             outputText?.SetText("");
 
+            OnValidate();
+
             Session session = Session.instance;
             session.onSessionBegin.AddListener(OnSessionBeginBase);
             session.onBlockBegin.AddListener(OnBlockBeginBase);
@@ -104,6 +116,39 @@ namespace ubco.ovilab.uxf.extensions
             startNextButtonText = startNextButton.GetComponentInChildren<TMPro.TMP_Text>();
             startNextButtonText?.SetText("Load session data");
             displayText?.SetText(askPrompt);
+        }
+
+        public void OnValidate()
+        {
+            if (UXFUIController == null)
+            {
+#if UNITY_EDITOR
+                UIController[] uiControllerObjs = FindObjectsOfType<UIController>();
+                bool foundUIControllerObj = false;
+                foreach (UIController uiControllerObj in uiControllerObjs)
+                {
+                    if (uiControllerObj != null)
+                    {
+                        UXFUIController = uiControllerObj;
+                        foundUIControllerObj = true;
+                    }
+                }
+
+                if (!foundUIControllerObj)
+                {
+                    UXFUIController = GameObject.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(UXF_RIG_PATH)).GetComponentInChildren<UIController>();
+                }
+
+                UXFUIController.experimentName = experimentName;
+#else
+                Debug.LogWarning("The UXF Rig has not been configured?");
+#endif
+            }
+
+            if (UXFUIController.startupMode != UXFUIStartupMode)
+            {
+                SetUXFUIStartupMode(UXFUIStartupMode);
+            }
         }
 
         /// <summary>
@@ -309,17 +354,28 @@ namespace ubco.ovilab.uxf.extensions
 
         #region HELPER_FUNCTIONS
         /// <inheritdoc />
-        public void SessionBeginParams(string studyName, int sessionNumber, Dictionary<string, object> participantDetails, Settings settings)
+        public void SessionBeginParams(string experimentName, int sessionNumber, Dictionary<string, object> participantDetails, Settings settings)
         {
             if (Session.instance.hasInitialised)
             {
                 throw new InvalidOperationException("SessionBeginParams called after session started.");
             }
 
-            this.studyName = studyName;
+            this.experimentName = experimentName;
             this.sessionNumber = sessionNumber;
             initialParticipantDetails = participantDetails;
             initialSettings = settings;
+        }
+
+        /// <summary>
+        /// Set which UXF UI Strtup mode to use. If set to manual, session would start when <see cref="MoveToNextState"/> is called.
+        /// If not the appropriate UXF UI startup mode would be used.
+        /// </summary>
+        public void SetUXFUIStartupMode(StartupMode startupMode)
+        {
+            UXFUIStartupMode = startupMode;
+            UXFUIController.startupMode = startupMode;
+            UXFUIController.LateValidate();
         }
 
         /// <inheritdoc />
@@ -336,7 +392,7 @@ namespace ubco.ovilab.uxf.extensions
                     AddToOutpuText("participant_index is -1, did't get data?");
                     return;
                 }
-                Session.instance.Begin(studyName, $"{participant_index}", sessionNumber, initialParticipantDetails, initialSettings);
+                Session.instance.Begin(experimentName, $"{participant_index}", sessionNumber, initialParticipantDetails, initialSettings);
                 Session.instance.settings.SetValue("participant_index", participant_index);
 
                 // Makes sure the session doesn't get started again
