@@ -6,6 +6,7 @@ using System.Threading;
 using UnityEngine;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace UXF
 {
@@ -61,6 +62,11 @@ namespace UXF
         /// Dictionary of results in a order.
         /// </summary>
         public ResultsDictionary result;
+
+        /// <summary>
+        /// This is used to track tasks scheduled through <see cref="ManageInWorker"/>.
+        /// </summary>
+        private static ConcurrentBag<Task> tasks = new ConcurrentBag<Task>();
 
         /// <summary>
         /// Manually create a trial. When doing this you need to add this trial to a block with block.trials.Add(trial)
@@ -178,14 +184,12 @@ namespace UXF
         {
             if (!CheckDataTypeIsValid(dataName, dataType)) dataType = UXFDataType.OtherTrialData;
 
-            started++;
             int i = 0;
             foreach(var dataHandler in session.ActiveDataHandlers)
             {
                 string location = dataHandler.HandleDataTable(table, session.experimentName, session.ppid, session.number, dataName, dataType, number);
                 result[string.Format("{0}_location_{1}", dataName, i++)] = location.Replace("\\", "/");
             }
-            finished++;
         }
 
         /// <summary>
@@ -271,8 +275,6 @@ namespace UXF
 
             if (duplicateTrackers.Any()) throw new InvalidOperationException(string.Format("Two or more trackers in the Tracked Objects field in the Session Inspector have the following object name and descriptor pair, please change the object name fields on the trackers to make them unique: {0}", string.Join(",", duplicateTrackers)));
 
-            Debug.Log($"Errors: {errorHappened};    threadend: {threadend};    scheduled: {scheduled};    started: {started};    finished: {finished}");
-
             // log tracked objects
             foreach (Tracker tracker in session.trackedObjects)
             {
@@ -283,7 +285,6 @@ namespace UXF
                     {
                         UXFDataTable table = tracker.Data;
                         string name = tracker.DataName;
-                        scheduled++;
                         ManageInWorker(() =>
                         {
                             SaveDataTable(table, name, dataType: UXFDataType.Trackers);
@@ -315,29 +316,30 @@ namespace UXF
                 try
                 {
                     action.Invoke();
-                    threadend++;
                 }
                 catch (ThreadAbortException)
                 {
-                    errorHappened++;
                     return;
                 }
                 catch (System.Exception e)
                 {
                     // stops thread aborting upon an exception
                     Debug.LogException(e);
-                    errorHappened++;
                 }
             }, TaskCreationOptions.LongRunning | TaskCreationOptions.PreferFairness);
+
+            tasks.Add(t);
         }
 
-        static int errorHappened = 0,
-            finished = 0,
-            started = 0,
-            threadend = 0,
-            scheduled = 0;
-
-
+        /// <summary>
+        /// Wait for all tasks scheduled through <see cref="ManageInWorker"/>
+        /// </summary>
+        public static void WaitForTasks()
+        {
+            Utilities.UXFDebugLog("Waiting for tasks to finish");
+            Task.WaitAll(tasks.ToArray());
+            Utilities.UXFDebugLog("Tasks to finish");
+        }
     }
 
     /// <summary>
