@@ -147,7 +147,7 @@ namespace ubco.ovilab.uxf.extensions
 
             if (UXFUIController.startupMode != UXFUIStartupMode)
             {
-                SetUXFUIStartupMode(UXFUIStartupMode);
+                StartCoroutine(DelayedSetUXFUIStartupMode(UXFUIStartupMode));
             }
         }
 
@@ -376,6 +376,12 @@ namespace ubco.ovilab.uxf.extensions
             UXFUIStartupMode = startupMode;
             UXFUIController.startupMode = startupMode;
             UXFUIController.LateValidate();
+        }
+
+        private IEnumerator DelayedSetUXFUIStartupMode(StartupMode startupMode)
+        {
+            yield return null;
+            SetUXFUIStartupMode(startupMode);
         }
 
         /// <inheritdoc />
