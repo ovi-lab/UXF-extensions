@@ -32,6 +32,7 @@ namespace ubco.ovilab.uxf.extensions
         /// <summary>
         /// The study name used when starting session (See Session.Begin).
         /// This could be overridden by calling <see cref="SessionBeginParams"/>
+        /// If UXF UI is used to start a session, the value provided there is taken precedence.
         /// </summary>
         [Tooltip("The study name used when starting session (See Session.Begin).")]
         [SerializeField] public string experimentName = "study";
@@ -224,7 +225,7 @@ namespace ubco.ovilab.uxf.extensions
         }
 
         /// <summary>
-        /// Abstract method to be used as a callback for <see cref="UXF.Session.onSessionBeing">.
+        /// Abstract method to be used as a callback for <see cref="UXF.Session.onSessionBegin">.
         /// </summary>
         protected abstract void OnSessionBegin(Session session);
 

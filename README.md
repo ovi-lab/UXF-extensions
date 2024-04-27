@@ -14,7 +14,9 @@ A representation of the process can be seen in the following activity chart. Not
 
 ![Activity chart](Docs~/activity_chart.png)
 
-To use this, extend the [`ubc.ok.ovilab.uxf.extensions.BlockData`](Assets/Scripts/BlockData.cs) to have the data from the experiment server. Then use that as the generic type and implement the [`ubc.ok.ovilab.uxf.extensions.ExperimentManager`](Assets/Scripts/ExperimentManager.cs) abstract class.
+To use this, extend the [`ubc.ok.ovilab.uxf.extensions.BlockData`](Assets/Scripts/BlockData.cs). 
+Data from the experiment server would be parsed to this class.
+Then use that as the generic type and implement the [`ubc.ok.ovilab.uxf.extensions.ExperimentManager`](Assets/Scripts/ExperimentManager.cs) abstract class.
 
 There are two ways to use data from the `experiment_server`
 1. Connecting to an server endpoint launched with `epxeriment-server run`
@@ -24,4 +26,4 @@ Create a `DataSource` asset (in the create asset menue *UXF* > *Extensions* > *D
 
 In the Unity Scene, ensure the extended implemenation of `ExperimentManager` class is setup with the `DataSource` added, setup the button and UI elements and provide the session details. If these values are not being set, this can also be done programatically with `ExperimentManager.SessionBeginParams` and `ExperimentManager.MoveToNextState`. Note that you also can use the [UXF UI](https://github.com/immersivecognition/unity-experiment-framework/wiki/Built-in-UI) to start a session. If using the UXF UI to provide the participant id, it is expected to be an integer.
 
-See documentation on [`ubc.ok.ovilab.uxf.extensions.ExperimentManager`](Assets/Scripts/ExperimentManager.cs) for more details.
+See documentation on [`ubc.ok.ovilab.uxf.extensions.IExperimentManager`](Assets/Scripts/IExperimentManager.cs) for more details.

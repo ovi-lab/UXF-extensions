@@ -37,7 +37,11 @@ namespace ubco.ovilab.uxf.extensions
 
         /// <summary>
         /// Setup the initial values used when Session is started <see cref="UXF.Session.Begin"/>.
-        /// Calling after session starts will throw an <see cref="System.InvalidOperationException"/>
+        /// Calling after session starts will throw an <see cref="System.InvalidOperationException"/>.
+        /// If session is started outside of this extensions (e.g., from UI), then the parameters
+        /// already set when <see cref="UXF.Session.Begin"/> was called are taken precedence.
+        /// That is, `experimentName` and `sessionNumber` passed through this method are ignored
+        /// and only new keys in `participantDetails` and `settings` are added.
         /// </summary>
         public void SessionBeginParams(string experimentName, int sessionNumber, Dictionary<string, object> participantDetails, Settings settings);
     }
