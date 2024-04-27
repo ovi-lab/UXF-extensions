@@ -1,5 +1,5 @@
 [configuration]
-order = [["base", "base", "base", "base"]]
+order = [["base1", "base1", "base2", "base2"]]
 # - "latin_square": Apply latin square to balance the values.
 # - "randomize": For each participant randomize the order of the values in the array.
 # - "as_is": Use the order of the values as specified.
@@ -14,7 +14,13 @@ random_seed = 0
 TRIALS_PER_ITEM = 3
 
 [[blocks]]
-name = "base"
+name = "base1"
 [blocks.config]
 trialsPerItem = "$TRIALS_PER_ITEM"
 calibrationName = "test"
+conditionVal = 1
+
+[[blocks]]
+name = "base2"
+[blocks.config]
+conditionVal = 2

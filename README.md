@@ -27,3 +27,13 @@ Create a `DataSource` asset (in the create asset menue *UXF* > *Extensions* > *D
 In the Unity Scene, ensure the extended implemenation of `ExperimentManager` class is setup with the `DataSource` added, setup the button and UI elements and provide the session details. If these values are not being set, this can also be done programatically with `ExperimentManager.SessionBeginParams` and `ExperimentManager.MoveToNextState`. Note that you also can use the [UXF UI](https://github.com/immersivecognition/unity-experiment-framework/wiki/Built-in-UI) to start a session. If using the UXF UI to provide the participant id, it is expected to be an integer.
 
 See documentation on [`ubc.ok.ovilab.uxf.extensions.IExperimentManager`](Assets/Scripts/IExperimentManager.cs) for more details.
+
+
+### Samples
+- The package comes with 2 Samples
+
+#### Sample experiment-server setup
+Config files to setup the experiment server. After importing copy the direcotry in `Assets/Samples/UXF extensions/0.1.1/Sample experiment-server setup` to the root of the unity project (e.g. `Experiment`).
+
+#### Sample implemenation of ExperimentManager
+Contains a sample implemenation. The implementation is based on the study config in the <i>Sample experiment-server setup</i> sample. To use, import this and play the <i>SampleUXFExtensionScene</i>.

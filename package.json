@@ -19,6 +19,11 @@
         "displayName": "Sample experiment-server setup",
         "description": "Config files to setup the experiment server. Copy the direcotry in `Assets/Samples/UXF extensions/0.1.1/Sample experiment-server setup` to the root of the unity project (e.g. `Experiment`).",
         "path": "Samples~/Experiment/"
+      },
+      {
+        "displayName": "Sample implemenation of ExperimentManager",
+        "description": "Contains a sample implemenation. The implementation is based on the study config in the <i>Sample experiment-server setup</i> sample. To use, import the sample the play the <i>SampleUXFExtensionScene</i>",
+        "path": "Samples~/SampleImplementation"
       }
     ]
 }

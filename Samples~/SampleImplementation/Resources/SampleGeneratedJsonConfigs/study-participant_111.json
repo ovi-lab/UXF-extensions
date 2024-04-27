@@ -1,0 +1,30 @@
+[
+  {
+    "trialsPerItem": 3,
+    "calibrationName": "test",
+    "conditionVal": 1,
+    "participant_index": 111,
+    "name": "base1",
+    "block_id": 0
+  },
+  {
+    "trialsPerItem": 3,
+    "calibrationName": "test",
+    "conditionVal": 1,
+    "participant_index": 111,
+    "name": "base1",
+    "block_id": 1
+  },
+  {
+    "conditionVal": 2,
+    "participant_index": 111,
+    "name": "base2",
+    "block_id": 2
+  },
+  {
+    "conditionVal": 2,
+    "participant_index": 111,
+    "name": "base2",
+    "block_id": 3
+  }
+]
