@@ -74,7 +74,8 @@ namespace ubco.ovilab.uxf.extensions
         private bool waitToGetData = false;
         private bool lastBlockCancelled = false;
         private int participant_index = -1;
-        private int countDisplay_blockNum, countDisplay_blockTotal, countDisplay_trialTotal;
+        private int countDisplay_trialTotal;
+        private string statusString;
         private TBlockData blockData;
         // NOTE: If a calibration function is set, when appropriate
         // the CalibrationComplete function also should be
@@ -163,7 +164,6 @@ namespace ubco.ovilab.uxf.extensions
             {
                 defaultData = JsonConvert.DeserializeObject<List<TBlockData>>(dataSource.configJsonFile.text);
                 Debug.Assert(defaultData.Select(d => d.participant_index).Distinct().Count() == 1, "There are more than 1 distinct participant indices in the provided config file");
-                countDisplay_blockTotal = defaultData.Count;
 
                 if (!sessionStarted)
                 {
@@ -187,7 +187,6 @@ namespace ubco.ovilab.uxf.extensions
                                StartCoroutine(GetJsonUrl("api/summary-data", (jsonText) =>
                                {
                                    ConfigSummaryData data = JsonConvert.DeserializeObject<ConfigSummaryData>(jsonText);
-                                   countDisplay_blockTotal = data.config_length;
 
                                    if (!sessionStarted)
                                    {
@@ -421,7 +420,6 @@ namespace ubco.ovilab.uxf.extensions
                 // Mark as canceled
                 Session.instance.CurrentBlock.settings.SetValue("canceled", true);
                 lastBlockCancelled = true;
-                countDisplay_blockTotal += 1;
 
                 AddToOutpuText("Cancelled block!");
 
@@ -654,10 +652,27 @@ namespace ubco.ovilab.uxf.extensions
             Session session = Session.instance;
             if (updateTotals)
             {
-                countDisplay_blockNum = session.currentBlockNum;
                 countDisplay_trialTotal = session.Trials.ToList().Count;
+
+                if (dataSource.useLocalData)
+                {
+                    statusString = $"\nppid: {defaultData[0].participant_index}    Block: {currentDefaultDataIndex}/{defaultData.Count}    Name: {defaultData[currentDefaultDataIndex].name}";
+                }
+                else
+                {
+                    Debug.Log($"wqorrr");
+                    StartCoroutine(GetJsonUrl("api/status-string", (text) =>
+                    {
+                        text = text.Replace("&nbsp;", " ").Replace("Participant index", "ppid");
+                        statusString = $"\n{text}";
+                        countText.text = $"{session.currentTrialNum}/{countDisplay_trialTotal}  {statusString}";
+                    }));
+                }
             }
-            countText.text = $"{session.currentTrialNum}/{countDisplay_trialTotal}  ({countDisplay_blockNum}/{countDisplay_blockTotal})";
+            else
+            {
+                countText.text = $"{session.currentTrialNum}/{countDisplay_trialTotal}  {statusString}";
+            }
         }
 
         #endregion
