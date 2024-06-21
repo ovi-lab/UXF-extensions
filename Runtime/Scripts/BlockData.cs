@@ -12,12 +12,14 @@ namespace ubco.ovilab.uxf.extensions
         public string name;
         public int participant_index;
         public string calibrationName;
+        public int block_id;
 
         public override string ToString()
         {
             return $"Name: {name}" +
                 $"Participant Index: {participant_index}" +
-                $"Calibration name: {calibrationName}";
+                $"Calibration name: {calibrationName}" +
+                $"Block ID:  {block_id}";
         }
     }
 }
