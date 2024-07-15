@@ -115,7 +115,7 @@ namespace ubco.ovilab.uxf.extensions
             session.settingsToLog.AddRange(new List<string>(){ "blockName", "canceled", "calibrationName" });
 
             startNextButton?.onClick.AddListener(MoveToNextState);
-            startNextButtonText = startNextButton.GetComponentInChildren<TMPro.TMP_Text>();
+            startNextButtonText = startNextButton?.GetComponentInChildren<TMPro.TMP_Text>();
             startNextButtonText?.SetText("Load session data");
             displayText?.SetText(askPrompt);
         }
