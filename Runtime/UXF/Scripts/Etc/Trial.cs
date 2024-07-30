@@ -7,6 +7,7 @@ using UnityEngine;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using System.IO;
 
 namespace UXF
 {
@@ -63,10 +64,10 @@ namespace UXF
         /// </summary>
         public ResultsDictionary result;
 
-        /// <summary>
-        /// This is used to track tasks scheduled through <see cref="ManageInWorker"/>.
-        /// </summary>
-        private static ConcurrentBag<Task> tasks = new ConcurrentBag<Task>();
+        // Used by the worker task
+        private static BlockingQueue<System.Action> blockingQueue = new BlockingQueue<System.Action>();
+        private static Task workerTask;
+        private static bool quitting = false;
 
         /// <summary>
         /// Manually create a trial. When doing this you need to add this trial to a block with block.trials.Add(trial)
@@ -311,7 +312,22 @@ namespace UXF
         /// <param name="action"></param>
         public static void ManageInWorker(System.Action action)
         {
-            Task t = Task.Factory.StartNew(() =>  // Wrapper to handle errors, logging and CultureInfo
+            if (workerTask == null)
+            {
+                workerTask = Task.Run(Worker);
+                quitting = false;
+            }
+
+            blockingQueue.Enqueue(action);
+        }
+
+        /// <summary>
+        /// The worker thread used when <see cref="ManageInWorker"/> is called.
+        /// </summary>
+        private static void Worker()
+        {
+            // performs FileIO tasks in seperate thread
+            foreach (var action in blockingQueue)
             {
                 try
                 {
@@ -319,16 +335,23 @@ namespace UXF
                 }
                 catch (ThreadAbortException)
                 {
-                    return;
+                    break;
+                }
+                catch (IOException e)
+                {
+                    Utilities.UXFDebugLogError(string.Format("Error, file may be in use! Exception: {0}", e));
                 }
                 catch (System.Exception e)
                 {
                     // stops thread aborting upon an exception
                     Debug.LogException(e);
                 }
-            }, TaskCreationOptions.LongRunning | TaskCreationOptions.PreferFairness);
 
-            tasks.Add(t);
+                if (quitting && blockingQueue.NumItems() == 0)
+                {
+                    break;
+                }
+            }
         }
 
         /// <summary>
@@ -337,7 +360,9 @@ namespace UXF
         public static void WaitForTasks()
         {
             Utilities.UXFDebugLog("Waiting for tasks to finish");
-            Task.WaitAll(tasks.ToArray());
+            quitting = true;
+            blockingQueue.Enqueue(() => {}); // ensures bq breaks from foreach loop
+            workerTask.Wait();
             Utilities.UXFDebugLog("Tasks to finish");
         }
     }
