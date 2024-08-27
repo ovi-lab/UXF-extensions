@@ -362,8 +362,8 @@ namespace UXF
             Utilities.UXFDebugLog("Waiting for tasks to finish");
             quitting = true;
             blockingQueue.Enqueue(() => {}); // ensures bq breaks from foreach loop
-            workerTask.Wait();
-            Utilities.UXFDebugLog("Tasks to finish");
+            workerTask?.Wait();
+            Utilities.UXFDebugLog("Tasks finished");
         }
     }
 
