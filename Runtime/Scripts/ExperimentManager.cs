@@ -16,6 +16,8 @@ using UnityEditor;
 
 namespace ubco.ovilab.uxf.extensions
 {
+    // TODO: Allow using ppid
+    // TODO: Allow registering calibration functions from inspector
     /// <summary>
     /// Extension class with UXF functions that work with the
     /// experiment server. The json data is parsed with a
@@ -179,30 +181,52 @@ namespace ubco.ovilab.uxf.extensions
                 StartCoroutine(
 #if UNITY_EDITOR
                     /// Making sure to start from the begining when experimentStartFrom0 is true
-                    GetJsonUrl(dataSource.experimentStartFrom0 ? "api/move-to-block/0": "api/active",
+                    GetJsonUrl(dataSource.experimentStartFrom0 ? "api/move-to-block/0" : "api/active",
 #else
                     GetJsonUrl("api/active",
 #endif
-                               (idx) =>
-                               StartCoroutine(GetJsonUrl("api/summary-data", (jsonText) =>
+                               (isActive) =>
                                {
-                                   ConfigSummaryData data = JsonConvert.DeserializeObject<ConfigSummaryData>(jsonText);
-
-                                   if (!sessionStarted)
+                                   Debug.Log(isActive);
+                                   if (isActive != "false")
                                    {
-                                       participant_index = data.participant_index;
+                                       GetSummaryData(nextButtonTextOndataRecieved);
                                    }
-                                   Debug.Log($"Recieved session data (pp# {participant_index}): {jsonText}");
-                                   AddToOutpuText($"Recieved session data (pp# {participant_index}): {jsonText}");
-                                   GetConfig();
-                                   startNextButtonText?.SetText(nextButtonTextOndataRecieved);
-                               })),
+                                   else
+                                   {
+                                       StartCoroutine(GetJsonUrl("api/move-to-next",
+                                                                 (jsonText) =>
+                                                                 {
+                                                                     GetSummaryData(nextButtonTextOndataRecieved);
+                                                                 },
+                                                                 post: true));
+                                   }
+                               },
 #if UNITY_EDITOR
                                post: dataSource.experimentStartFrom0,
 #endif
                                repeatIfFailed: true));
             }
         }
+
+        private void GetSummaryData(string nextButtonTextOndataRecieved)
+        {
+            StartCoroutine(GetJsonUrl("api/summary-data", (jsonText) =>
+            {
+                ConfigSummaryData data = JsonConvert.DeserializeObject<ConfigSummaryData>(jsonText);
+
+                if (!sessionStarted)
+                {
+                    participant_index = data.participant_index;
+                }
+                Debug.Log($"Recieved session data (pp# {participant_index}): {jsonText}");
+                AddToOutpuText($"Recieved session data (pp# {participant_index}): {jsonText}");
+                GetConfig();
+                startNextButtonText?.SetText(nextButtonTextOndataRecieved);
+            }));
+        }
+
+
         #endregion
 
         #region UFX_FUNCTIONS
