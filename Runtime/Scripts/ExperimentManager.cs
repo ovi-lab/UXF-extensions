@@ -684,7 +684,6 @@ namespace ubco.ovilab.uxf.extensions
                 }
                 else
                 {
-                    Debug.Log($"wqorrr");
                     StartCoroutine(GetJsonUrl("api/status-string", (text) =>
                     {
                         text = text.Replace("&nbsp;", " ").Replace("Participant index", "ppid");
