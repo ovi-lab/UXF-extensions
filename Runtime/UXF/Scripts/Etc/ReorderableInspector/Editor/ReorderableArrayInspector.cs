@@ -60,9 +60,9 @@ namespace SubjectNerd.Utilities
 		[DidReloadScripts]
 		private static void HandleScriptReload()
 		{
-			FORCE_INIT = true;
+			FORCE_INIT = false;
 
-			EditorApplication.delayCall = () => { EditorApplication.delayCall = () => { FORCE_INIT = false; }; };
+			// EditorApplication.delayCall = () => { EditorApplication.delayCall = () => { FORCE_INIT = false; }; };
 		}
 
 		private static GUIStyle styleHighlight;
