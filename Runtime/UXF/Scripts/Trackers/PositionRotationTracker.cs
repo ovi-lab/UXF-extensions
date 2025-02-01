@@ -12,7 +12,12 @@ namespace UXF
     public class PositionRotationTracker : Tracker
     {
         public override string MeasurementDescriptor => "movement";
-        public override IEnumerable<string> CustomHeader => new string[] { "pos_x", "pos_y", "pos_z", "rot_x", "rot_y", "rot_z" };
+        public override IEnumerable<string> CustomHeader => new string[]
+        {
+            "pos_x", "pos_y", "pos_z", "rot_x", "rot_y", "rot_z", "rot_w",
+            "wlm_00", "wlm_01", "wlm_02", "wlm_04", "wlm_10", "wlm_11", "wlm_12", "wlm_14",
+            "wlm_20", "wlm_21", "wlm_22", "wlm_24", "wlm_30", "wlm_31", "wlm_32", "wlm_34",
+        };
 
         /// <summary>
         /// Returns current position and rotation values
@@ -22,7 +27,8 @@ namespace UXF
         {
             // get position and rotation
             Vector3 p = gameObject.transform.position;
-            Vector3 r = gameObject.transform.eulerAngles;
+            Quaternion r = gameObject.transform.rotation;
+            Matrix4x4 m = gameObject.transform.worldToLocalMatrix;
 
             // return position, rotation (x, y, z) as an array
             var values = new UXFDataRow()
@@ -32,7 +38,24 @@ namespace UXF
                 ("pos_z", p.z),
                 ("rot_x", r.x),
                 ("rot_y", r.y),
-                ("rot_z", r.z)
+                ("rot_z", r.z),
+                ("rot_w", r.w),
+                ("wlm_00", m.m00),
+                ("wlm_01", m.m01),
+                ("wlm_02", m.m02),
+                ("wlm_04", m.m03),
+                ("wlm_10", m.m10),
+                ("wlm_11", m.m11),
+                ("wlm_12", m.m12),
+                ("wlm_14", m.m13),
+                ("wlm_20", m.m20),
+                ("wlm_21", m.m21),
+                ("wlm_22", m.m22),
+                ("wlm_24", m.m23),
+                ("wlm_30", m.m30),
+                ("wlm_31", m.m31),
+                ("wlm_32", m.m32),
+                ("wlm_34", m.m33)
             };
 
             return values;
