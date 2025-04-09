@@ -7,6 +7,21 @@ namespace ubco.ovilab.uxf.extensions
     public interface IExperimentManager<out T>
     {
         /// <summary>
+        /// The participant index configuted through experiment-server.
+        /// Once the exerpiment starts, this should be the same as 
+        /// <see cref="UXF.Session.ppid"/>.
+        /// </summary>
+        public int ParticipantIndex { get; }
+
+        /// <summary>
+        /// The total number of blocks configured in the experiment-server.
+        /// Note that this would not match the length of <see cref="UXF.Session.blocks"/>
+        /// as blocks are added dynamically as they are recieved from the
+        /// experiment-server.
+        /// </summary>
+        public int ConfigsLength { get; }
+
+        /// <summary>
         /// All calibration methods configured through
         /// <see cref="AddCalibrationMethod"/> should call this method
         /// to transfer control back to the

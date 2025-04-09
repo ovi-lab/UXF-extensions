@@ -9,6 +9,8 @@ using System;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using UXF.UI;
+using UnityEngine.Assertions;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -65,6 +67,22 @@ namespace ubco.ovilab.uxf.extensions
         [SerializeField] private TMPro.TMP_Text countText;
         [Tooltip("(optional) The text of the start next button. When `Start Next Button` is set, this would help indicate the current state of the progress on screen.")]
 
+        /// <inheritdoc />
+        public int ParticipantIndex {
+            get {
+                Assert.IsNotNull(configSummary, "Config summary not set yet!");
+                return configSummary.ParticipantIndex;
+            }
+        }
+
+        /// <inheritdoc />
+        public int ConfigsLength {
+            get {
+                Assert.IsNotNull(configSummary, "Config summary not set yet!");
+                return configSummary.ConfigsLength;
+            }
+        }
+
         #region HIDDEN_VARIABLES
         private Settings initialSettings;
         private Dictionary<string, object> initialParticipantDetails;
@@ -75,7 +93,7 @@ namespace ubco.ovilab.uxf.extensions
         private bool tryingToGetData = false;
         private bool waitToGetData = false;
         private bool lastBlockCancelled = false;
-        private int participant_index = -1;
+        private ConfigSummaryData configSummary;
         private int countDisplay_trialTotal;
         private string statusString;
         private TBlockData blockData;
@@ -101,7 +119,7 @@ namespace ubco.ovilab.uxf.extensions
             sessionStarted = false;
             tryingToGetData = false;
             waitToGetData = false;
-            participant_index = -1;
+            configSummary = null;
             outputText?.SetText("");
 
             OnValidate();
@@ -127,7 +145,7 @@ namespace ubco.ovilab.uxf.extensions
             if (UXFUIController == null)
             {
 #if UNITY_EDITOR
-                UIController[] uiControllerObjs = FindObjectsOfType<UIController>();
+                UIController[] uiControllerObjs = FindObjectsByType<UIController>(FindObjectsSortMode.None);
                 bool foundUIControllerObj = false;
                 foreach (UIController uiControllerObj in uiControllerObjs)
                 {
@@ -167,12 +185,12 @@ namespace ubco.ovilab.uxf.extensions
                 defaultData = JsonConvert.DeserializeObject<List<TBlockData>>(dataSource.configJsonFile.text);
                 Debug.Assert(defaultData.Select(d => d.participant_index).Distinct().Count() == 1, "There are more than 1 distinct participant indices in the provided config file");
 
-                if (!sessionStarted)
+                if (configSummary == null)
                 {
-                    participant_index = defaultData[0].participant_index;
+                    configSummary = new ConfigSummaryData(defaultData[0].participant_index, defaultData.Count);
                 }
-                Debug.Log($"Recieved session data (pp# {participant_index})");
-                AddToOutpuText($"Recieved session data (pp# {participant_index})");
+                Debug.Log($"Recieved session data (pp# {configSummary.ParticipantIndex})");
+                AddToOutpuText($"Recieved session data (pp# {configSummary.ParticipantIndex})");
                 GetConfig();
                 startNextButtonText?.SetText(nextButtonTextOndataRecieved);
             }
@@ -215,12 +233,15 @@ namespace ubco.ovilab.uxf.extensions
             {
                 ConfigSummaryData data = JsonConvert.DeserializeObject<ConfigSummaryData>(jsonText);
 
-                if (!sessionStarted)
+                if (configSummary == null)
                 {
-                    participant_index = data.participant_index;
+                    configSummary = data;
                 }
-                Debug.Log($"Recieved session data (pp# {participant_index}): {jsonText}");
-                AddToOutpuText($"Recieved session data (pp# {participant_index}): {jsonText}");
+                Assert.AreEqual(data.ParticipantIndex, configSummary.ParticipantIndex,
+                                $"Summary data from server (ppid: {data.ParticipantIndex}) does not match the cached summary data (ppid: {configSummary.ParticipantIndex}).");
+
+                Debug.Log($"Recieved session data (pp# {configSummary.ParticipantIndex}): {jsonText}");
+                AddToOutpuText($"Recieved session data (pp# {configSummary.ParticipantIndex}): {jsonText}");
                 GetConfig();
                 startNextButtonText?.SetText(nextButtonTextOndataRecieved);
             }));
@@ -238,8 +259,8 @@ namespace ubco.ovilab.uxf.extensions
             if (!sessionStarted)
             {
                 sessionStarted = true;
-                participant_index = int.Parse(Session.instance.ppid.Trim());
-                Session.instance.settings.SetValue("participant_index", participant_index);
+                // TODO: Use the ppid endpoints of experiment manager.
+                Debug.LogWarning($"Starting server from UI? ExperimentManager does not handle/respect ppid set in UI.");
                 AddToOutpuText("Session started");
                 InitiateSessionStart("Run calibration");
             }
@@ -419,13 +440,13 @@ namespace ubco.ovilab.uxf.extensions
             }
             else if (!sessionStarted && !Session.instance.hasInitialised)
             {
-                if (participant_index == -1)
+                if (configSummary.ParticipantIndex == -1)
                 {
                     AddToOutpuText("participant_index is -1, did't get data?");
                     return;
                 }
-                Session.instance.Begin(experimentName, $"{participant_index}", sessionNumber, initialParticipantDetails, initialSettings);
-                Session.instance.settings.SetValue("participant_index", participant_index);
+                Session.instance.Begin(experimentName, $"{configSummary.ParticipantIndex}", sessionNumber, initialParticipantDetails, initialSettings);
+                Session.instance.settings.SetValue("participant_index", configSummary.ParticipantIndex);
 
                 // Makes sure the session doesn't get started again
                 sessionStarted = true;
@@ -707,15 +728,15 @@ namespace ubco.ovilab.uxf.extensions
         }
     }
 
-    internal struct ConfigSummaryData
+    internal class ConfigSummaryData
     {
-        public int participant_index;
-        public int config_length;
+        public int ParticipantIndex { get; set; }
+        public int ConfigsLength { get; set; }
 
         public ConfigSummaryData(int participant_index, int config_length)
         {
-            this.participant_index = participant_index;
-            this.config_length = config_length;
+            this.ParticipantIndex = participant_index;
+            this.ConfigsLength = config_length;
         }
     }
 }
