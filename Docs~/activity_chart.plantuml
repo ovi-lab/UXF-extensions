@@ -35,7 +35,8 @@ while (Get config for block from experiment server (""block_data"")) is (not end
     endif
 
     |__in-package__|
-    :""ConfigureBlock""  called with ""block_data"";
+    :Create new block;
+    :""ConfigureBlock""  called with ""block_data"" and new block;
 
     |__user-defined__|
     #lightgreen:""ConfigureBlock"";

@@ -273,7 +273,9 @@ namespace ubco.ovilab.uxf.extensions
         }
 
         /// <summary>
-        /// Abstract method that processes the configuration from experiment server.
+        /// Abstract method that processes the configuration from experiment
+        /// server. Note that a new block is added each time a new configuration
+        /// is fetched from the experiment server.
         /// </summary>
         /// <param name="el">The parsed config data from experiment server.</param>
         /// <param name="block">Current block being configured.</param>

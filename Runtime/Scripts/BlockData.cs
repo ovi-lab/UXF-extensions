@@ -9,9 +9,22 @@ namespace ubco.ovilab.uxf.extensions
     /// experiment server config file.
     /// </summary>
     public class BlockData {
+        /// <summary>
+        /// The name of the block.
+        /// </summary>
         public string name;
+        /// <summary>
+        /// The participant index.
+        /// </summary>
         public int participant_index;
+        /// <summary>
+        /// The calibration name.
+        /// </summary>
         public string calibrationName;
+        /// <summary>
+        /// The block index in the list of blocks configured in
+        /// experiment-server.
+        /// </summary>
         public int block_id;
 
         public override string ToString()
