@@ -22,13 +22,13 @@ namespace UXF
         /// <summary>
         /// Description of the type of measurement this tracker will perform.
         /// </summary>
-        public abstract string MeasurementDescriptor { get; }  
+        public abstract string MeasurementDescriptor { get; }
 
         /// <summary>
         /// Custom column headers for tracked objects.
         /// </summary>
-        public abstract IEnumerable<string> CustomHeader { get; }  
-   
+        public abstract IEnumerable<string> CustomHeader { get; }
+
         /// <summary>
         /// A name used when saving the data from this tracker.
         /// </summary>
@@ -44,7 +44,7 @@ namespace UXF
         public bool Recording { get { return recording; } }
 
         public UXFDataTable Data { get; private set; } = new UXFDataTable();
-        
+
 
         /// <summary>
         /// When the tracker should take measurements.
@@ -75,8 +75,8 @@ namespace UXF
         /// </summary>
         public void RecordRow()
         {
-            if (!recording) throw new System.InvalidOperationException("Tracker measurements cannot be taken when not recording!");
-            
+            if (!recording) throw new System.InvalidOperationException($"Tracker measurements cannot be taken when not recording! {transform.name}");
+
             UXFDataRow newRow = GetCurrentValues();
             newRow.Add(("time", Time.time));
             Data.AddCompleteRow(newRow);
