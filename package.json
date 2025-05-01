@@ -18,7 +18,7 @@
     "samples":[
       {
         "displayName": "Sample experiment-server setup",
-        "description": "Config files to setup the experiment server. Copy the direcotry in `Assets/Samples/UXF extensions/0.1.1/Sample experiment-server setup` to the root of the unity project (e.g. `Experiment`).",
+        "description": "Config files to setup the experiment server. Go through the README of the sample to see how to run the experiment-server. This sample is to be executed outside of Unit, hence, it doesn't have to be inside the `Assets` folder. Hence, after importing this example, you could move the direcotry in `Assets/Samples/UXF extensions/0.1.1/Sample experiment-server setup` to the root of the unity project (e.g. `Experiment`) outside of the `Assets` folder.",
         "path": "Samples~/Experiment/"
       },
       {
