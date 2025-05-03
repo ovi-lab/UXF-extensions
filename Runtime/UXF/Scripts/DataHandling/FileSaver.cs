@@ -30,6 +30,16 @@ namespace UXF
         public bool verboseDebug = false;
 
         /// <summary>
+        /// Enable backing up the session directory if it already exists when a session starts.  If
+        /// not true, this will overwrite the is the UXF runs with the same experiment name, ppid,
+        /// and session number again.
+        /// </summary>
+        [Tooltip("Enable backing up the session directory if it already exists when a session starts.  If" +
+                 "not true, this will overwrite the is the UXF runs with the same experiment name, ppid," +
+                 "and session number again.")]
+        public bool backupSessionIfExists = true;
+
+        /// <summary>
         /// An action which does nothing.
         /// </summary>
         /// <returns></returns>
@@ -43,7 +53,6 @@ namespace UXF
 
         bool quitting = false;
 
-
         /// <summary>
         /// Starts the FileSaver Worker thread.
         /// </summary>
@@ -56,6 +65,30 @@ namespace UXF
 
             quitting = false;
             Directory.CreateDirectory(base.StoragePath);
+            string sessionDirectory = GetSessionPath(session.experimentName, session.ppid, session.number);
+            if (Directory.Exists(sessionDirectory))
+            {
+                Utilities.UXFDebugLogWarning($"Session directory {sessionDirectory} already exists.");
+                if (backupSessionIfExists)
+                {
+                    string suffix = Directory.GetLastWriteTime(sessionDirectory).ToString("dd-MM-yyyy-HH-mm-FF");
+                    string backupSessionDirectory = $"{sessionDirectory}_{suffix}";
+                    try
+                    {
+                        Directory.Move(sessionDirectory, backupSessionDirectory);
+                        Utilities.UXFDebugLogWarning($"Trying to backup {sessionDirectory} to {backupSessionDirectory}.");
+                    }
+                    catch(Exception e)
+                    {
+                        Utilities.UXFDebugLogError($"Failed to backup {sessionDirectory} to {backupSessionDirectory} with exception ({e}): {e.Message}");
+                        throw e;
+                    }
+                }
+                else
+                {
+                    Utilities.UXFDebugLogWarning($"backupSessionIfExists is False. Content in {sessionDirectory} may be overwritten.");
+                }
+            }
 
             if (!IsActive)
             {
@@ -132,58 +165,6 @@ namespace UXF
         }
 
         /// <summary>
-        /// Move `path` to a back up path.
-        /// Backup is the path file name with its LastWriteTime as a suffix.
-        /// </summary>
-        protected virtual void MoveToBackup(string path)
-        {
-            string fileName = Path.GetFileNameWithoutExtension(path);
-            string suffix = File.GetLastWriteTime(path).ToString("dd-MM-yyyy-HH-mm-FF");
-            string ext = Path.GetExtension(path);
-            string newPath = Path.Combine(Path.GetDirectoryName(path), $"{fileName}_{suffix}{ext}");
-            File.Move(path, newPath);
-        }
-
-        /// <summary>
-        /// Same as File.WriteAllText, but makes sure files are not overwritten.
-        /// If file file exists, the old file will be renamed with a suffix with its LastWriteTime.
-        /// </summary>
-        protected virtual void SafeFileWriteAllText(string path, string content)
-        {
-            if (File.Exists(path))
-            {
-                MoveToBackup(path);
-            }
-            File.WriteAllText(path, content);
-        }
-
-        /// <summary>
-        /// Same as File.WriteAllLines, but makes sure files are not overwritten.
-        /// If file file exists, the old file will be renamed with a suffix with its LastWriteTime.
-        /// </summary>
-        protected virtual void SafeFileWriteAllLines(string path, string[] content)
-        {
-            if (File.Exists(path))
-            {
-                MoveToBackup(path);
-            }
-            File.WriteAllLines(path, content);
-        }
-
-        /// <summary>
-        /// Same as File.WriteAllBytes, but makes sure files are not overwritten.
-        /// If file file exists, the old file will be renamed with a suffix with its LastWriteTime.
-        /// </summary>
-        protected virtual void SafeFileWriteAllBytes(string path, byte[] content)
-        {
-            if (File.Exists(path))
-            {
-                MoveToBackup(path);
-            }
-            File.WriteAllBytes(path, content);
-        }
-
-        /// <summary>
         /// Returns true if there may be a risk of overwriting data.
         /// </summary>
         /// <param name="experiment"></param>
@@ -214,7 +195,7 @@ namespace UXF
             
             if (verboseDebug) Utilities.UXFDebugLogFormat("Queuing save of file: {0}", savePath);
 
-            ManageInWorker(() => { SafeFileWriteAllLines(savePath, lines); });
+            ManageInWorker(() => { File.WriteAllLines(savePath, lines); });
             return GetRelativePath(StoragePath, savePath);
         }
 
@@ -235,7 +216,7 @@ namespace UXF
             
             if (verboseDebug) Utilities.UXFDebugLogFormat("Queuing save of file: {0}", savePath);
 
-            ManageInWorker(() => { SafeFileWriteAllText(savePath, text); });
+            ManageInWorker(() => { File.WriteAllText(savePath, text); });
             return GetRelativePath(StoragePath, savePath);;
         }
 
@@ -256,7 +237,7 @@ namespace UXF
             
             if (verboseDebug) Utilities.UXFDebugLogFormat("Queuing save of file: {0}", savePath);
 
-            ManageInWorker(() => { SafeFileWriteAllText(savePath, text); });
+            ManageInWorker(() => { File.WriteAllText(savePath, text); });
             return GetRelativePath(StoragePath, savePath);;
         }
 
@@ -276,7 +257,7 @@ namespace UXF
             
             if (verboseDebug) Utilities.UXFDebugLogFormat("Queuing save of file: {0}", savePath);
 
-            ManageInWorker(() => { SafeFileWriteAllText(savePath, text); });
+            ManageInWorker(() => { File.WriteAllText(savePath, text); });
             return GetRelativePath(StoragePath, savePath);;
         }
 
@@ -296,7 +277,7 @@ namespace UXF
 
             if (verboseDebug) Utilities.UXFDebugLogFormat("Queuing save of file: {0}", savePath);
 
-            ManageInWorker(() => { SafeFileWriteAllBytes(savePath, bytes); });
+            ManageInWorker(() => { File.WriteAllBytes(savePath, bytes); });
             return GetRelativePath(StoragePath, savePath);
         }
 
