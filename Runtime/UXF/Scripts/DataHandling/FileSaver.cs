@@ -73,6 +73,13 @@ namespace UXF
                 {
                     string suffix = Directory.GetLastWriteTime(sessionDirectory).ToString("dd-MM-yyyy-HH-mm-FF");
                     string backupSessionDirectory = $"{sessionDirectory}_{suffix}";
+
+                    int idx = 1;
+                    while (Directory.Exists(backupSessionDirectory))
+                    {
+                        backupSessionDirectory = $"{backupSessionDirectory}_{idx}";
+                    }
+
                     try
                     {
                         Directory.Move(sessionDirectory, backupSessionDirectory);
