@@ -17,9 +17,10 @@ namespace ubco.ovilab.uxf.extensions.editor
         private SerializedProperty experimentNameProp;
         private SerializedProperty sessionNumberProp;
         private SerializedProperty dataSourceProp;
-        private SerializedProperty onBlockRecievedProp;
+        private SerializedProperty BlockRecievedProp;
         private SerializedProperty askPromptProp;
         private SerializedProperty startNextButtonProp;
+        private SerializedProperty outputTextProp;
         private SerializedProperty displayTextProp;
         private SerializedProperty countTextProp;
 
@@ -34,9 +35,10 @@ namespace ubco.ovilab.uxf.extensions.editor
                 "experimentName",
                 "sessionNumber",
                 "dataSource",
-                "onBlockRecieved",
+                "BlockRecieved",
                 "askPrompt",
                 "startNextButton",
+                "outputText",
                 "displayText",
                 "countText"
             };
@@ -47,9 +49,10 @@ namespace ubco.ovilab.uxf.extensions.editor
             experimentNameProp = serializedObject.FindProperty("experimentName");
             sessionNumberProp = serializedObject.FindProperty("sessionNumber");
             dataSourceProp = serializedObject.FindProperty("dataSource");
-            onBlockRecievedProp = serializedObject.FindProperty("onBlockRecieved");
+            BlockRecievedProp = serializedObject.FindProperty("BlockRecieved");
             askPromptProp = serializedObject.FindProperty("askPrompt");
             startNextButtonProp = serializedObject.FindProperty("startNextButton");
+            outputTextProp = serializedObject.FindProperty("outputText");
             displayTextProp = serializedObject.FindProperty("displayText");
             countTextProp = serializedObject.FindProperty("countText");
         }
@@ -76,13 +79,14 @@ namespace ubco.ovilab.uxf.extensions.editor
             showEvents = EditorGUILayout.Foldout(showEvents, "Events");
             if (showEvents)
             {
-                EditorGUILayout.PropertyField(onBlockRecievedProp);
+                EditorGUILayout.PropertyField(BlockRecievedProp);
             }
             
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("UXF Extensions UI settings", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(askPromptProp);
             EditorGUILayout.PropertyField(startNextButtonProp);
+            EditorGUILayout.PropertyField(outputTextProp);
             EditorGUILayout.PropertyField(displayTextProp);
             EditorGUILayout.PropertyField(countTextProp);
 

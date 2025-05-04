@@ -28,7 +28,7 @@ namespace ubco.ovilab.uxf.extensions.tests
             int blockRecievedCalled = 0;
 
             expManager.AddCalibrationMethod("test1", (_) => test1CalibrationCalled++);
-            expManager.onBlockRecieved.AddListener((_) => blockRecievedCalled++);
+            expManager.BlockRecieved.AddListener((_) => blockRecievedCalled++);
 
             // Use the Assert class to test conditions.
             // Use yield to skip a frame.

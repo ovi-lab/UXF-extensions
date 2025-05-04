@@ -50,10 +50,16 @@ namespace ubco.ovilab.uxf.extensions
         [SerializeField] public int sessionNumber = 1;
 
         [Tooltip("Data source being used.")]
+        /// <summary>
+        /// Data source being used.
+        /// </summary>
         public DataSource dataSource;
 
         [Tooltip("Event called when block data is recieved.")]
-        public UnityEvent<TBlockData> onBlockRecieved = new UnityEvent<TBlockData>();
+        /// <summary>
+        /// The event triggered when block data is recieved.
+        /// </summary>
+        public UnityEvent<TBlockData> BlockRecieved = new UnityEvent<TBlockData>();
 
         [Tooltip("(optional) The string to display on `Display Text`")]
         [Multiline][SerializeField] private string askPrompt = "When ready ask researcher to proceed with the experiment";
@@ -608,7 +614,7 @@ namespace ubco.ovilab.uxf.extensions
             if (dataSource.useLocalData)
             {
                 blockData = defaultData[currentDefaultDataIndex];
-                onBlockRecieved?.Invoke(blockData);
+                BlockRecieved?.Invoke(blockData);
                 AddToOutpuText($"Got new block: {blockData.name}");
                 tryingToGetData = false;
             }
@@ -620,7 +626,7 @@ namespace ubco.ovilab.uxf.extensions
                         (jsonText) =>
                         {
                             blockData = JsonConvert.DeserializeObject<TBlockData>(jsonText);
-                            onBlockRecieved?.Invoke(blockData);
+                            BlockRecieved?.Invoke(blockData);
                             AddToOutpuText($"Got new block: {blockData.name}");
                             tryingToGetData = false;
                         },
