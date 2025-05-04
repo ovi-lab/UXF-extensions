@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Events;
 using UXF;
 
 namespace ubco.ovilab.uxf.extensions
@@ -20,6 +21,17 @@ namespace ubco.ovilab.uxf.extensions
         /// experiment-server.
         /// </summary>
         public int ConfigsLength { get; }
+
+        /// <summary>
+        /// The UnityEvent that will be triggereed when the CurrentState changes.
+        /// </summary>
+        public UnityEvent<ExperimentManagerState> StateChanged { get; }
+
+        /// <summary>
+        /// The current state of the ExperimentManager.
+        /// <seealso cref="ExperimentManagerState"/>
+        /// </summary>
+        public ExperimentManagerState CurrentState { get; }
 
         /// <summary>
         /// All calibration methods configured through

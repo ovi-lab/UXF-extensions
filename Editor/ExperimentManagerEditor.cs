@@ -18,6 +18,7 @@ namespace ubco.ovilab.uxf.extensions.editor
         private SerializedProperty sessionNumberProp;
         private SerializedProperty dataSourceProp;
         private SerializedProperty BlockRecievedProp;
+        private SerializedProperty StateChangedProp;
         private SerializedProperty askPromptProp;
         private SerializedProperty startNextButtonProp;
         private SerializedProperty outputTextProp;
@@ -36,6 +37,7 @@ namespace ubco.ovilab.uxf.extensions.editor
                 "sessionNumber",
                 "dataSource",
                 "BlockRecieved",
+                "stateChanged",
                 "askPrompt",
                 "startNextButton",
                 "outputText",
@@ -50,6 +52,7 @@ namespace ubco.ovilab.uxf.extensions.editor
             sessionNumberProp = serializedObject.FindProperty("sessionNumber");
             dataSourceProp = serializedObject.FindProperty("dataSource");
             BlockRecievedProp = serializedObject.FindProperty("BlockRecieved");
+            StateChangedProp = serializedObject.FindProperty("stateChanged");
             askPromptProp = serializedObject.FindProperty("askPrompt");
             startNextButtonProp = serializedObject.FindProperty("startNextButton");
             outputTextProp = serializedObject.FindProperty("outputText");
@@ -80,6 +83,7 @@ namespace ubco.ovilab.uxf.extensions.editor
             if (showEvents)
             {
                 EditorGUILayout.PropertyField(BlockRecievedProp);
+                EditorGUILayout.PropertyField(StateChangedProp);
             }
             
             EditorGUILayout.Space();
