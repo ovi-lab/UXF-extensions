@@ -1,0 +1,32 @@
+@startuml
+hide empty description
+scale 350 width
+[*] -down-> UninitializedSession
+UninitializedSession -down-> AwaitingInitialization
+AwaitingInitialization -down-> AwaitingBlockConfig
+AwaitingBlockConfig -down-> ReadyForCalibration
+ReadyForCalibration -down-> Calibrating
+note on link
+    claibration function exists
+end note
+ReadyForCalibration -down-> ReadyForBlockBegin
+note on link
+    no claibration function exists
+end note
+Calibrating -down-> ReadyForBlockBegin
+ReadyForBlockBegin -down-> BlockBegan
+BlockBegan -down-> BlockEnded
+BlockBegan -down-> BlockCancelled : if cancelled
+BlockEnded -up-> ReadyForCalibration
+BlockCancelled -up-> ReadyForCalibration
+BlockEnded -down-> SessionEnded
+note on link
+    End block or
+    Session.End called
+end note
+BlockCancelled -down-> SessionEnded
+note on link
+    Session.End called
+end note
+SessionEnded -> [*]
+@enduml
