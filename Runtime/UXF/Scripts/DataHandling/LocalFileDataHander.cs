@@ -31,6 +31,11 @@ namespace UXF
             {
                 if (dataSaveLocation == DataSaveLocation.PersistentDataPath)
                 {
+                    // NOTE: this is an edgecase - mostly happens in the test suits
+                    if (String.IsNullOrEmpty(applicationPersistentDataPath))
+                    {
+                        return Application.persistentDataPath;
+                    }
                     return applicationPersistentDataPath;
                 }
                 else
