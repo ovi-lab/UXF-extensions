@@ -1,0 +1,18 @@
+{
+    "name": "SubjectNerd.Editor",
+    "rootNamespace": "SubjectNerd",
+    "references": [
+        "GUID:2dd1a547f7a3cef42ba7179b9191fe56"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

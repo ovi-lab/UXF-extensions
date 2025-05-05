@@ -1,0 +1,19 @@
+{
+    "name": "UXF.Form.EditorUtils",
+    "rootNamespace": "UXF.EditorUtils",
+    "references": [
+        "GUID:581cccc347938044e8ae3adc4e6d3640",
+        "GUID:282e3d5f405bea545a28e486c76d2a56"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
