@@ -12,7 +12,12 @@ endlegend
 
 |__in-package__|
 start
+floating note: ""UninitializedSession""
 #lightpink:Click next button ("Load session data") or call ""MoveToNextState"";
+floating note
+    enters ""AwaitingInitialization""
+    then ""AwaitingBlockConfig""
+end note
 |#FloralWhite|__user-defined__|
 :(optional) Set ""UXF.Session.Being"" parameters
 with ""ExperimentManager.SessionBeginParams"";
@@ -22,15 +27,23 @@ with ""ExperimentManager.SessionBeginParams"";
 |__user-defined__|
 #lightgreen:""OnSessionBegin"";
 |#Azure|__in-package__|
-#lightpink:Click next button ("Get Config") or call ""MoveToNextState"";
+/'
+ ' #lightpink:Click next button ("Get Config") or call ""MoveToNextState"";
+ '/
 
 while (Get config for block from experiment server (""block_data"")) is (not end block)
-
+    :;
+    floating note: enters ""ReadyForCalibration""
     #lightpink:Click next button ("Run Calibration") or call ""MoveToNextState"";
+    floating note
+        enters ""Calibrating"" or
+        ""ReadyForBlockBegin"" if no claibration
+    end note
     if (calibration function exists) then (yes)
         |__user-defined__|
         :Run calibration;
         :""CalibrationComplete""  called;
+        floating note: enters ""ReadyForBlockBegin""
     else (no)
     endif
 
@@ -43,6 +56,7 @@ while (Get config for block from experiment server (""block_data"")) is (not end
 
     |__in-package__|
     #lightpink:Click next button ("Run Block") or call ""MoveToNextState"";
+    floating note: enters ""BlockBegan""
     :""OnBlockBegin""  called;
 
     |__user-defined__|
@@ -80,6 +94,7 @@ while (Get config for block from experiment server (""block_data"")) is (not end
     endwhile (no)
 
     :""OnBlockEnd""  called;
+    floating note: enters ""BlockEnded"" or ""BlockCancelled""
 
     |__user-defined__|
     #lightgreen:""OnBlockEnd"";
@@ -94,6 +109,7 @@ while (Get config for block from experiment server (""block_data"")) is (not end
 endwhile (end block)
 
 :""OnSessionEnd""  called;
+floating note: enters ""SessionEnded""
 
 |__user-defined__|
 #lightgreen:""OnSessionEnd"";
