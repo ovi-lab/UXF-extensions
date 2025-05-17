@@ -63,6 +63,22 @@ namespace ubco.ovilab.uxf.extensions
         public void MoveToNextState();
 
         /// <summary>
+        /// Requests the ExperimentManager to transition to the specified <paramref
+        /// name="targetState"/>, invoking <paramref name="callback"/> upon completion,
+        /// cancellation, or session end interruption.  If another state transition is
+        /// already in progress, the prior callback will be cancelled and invoked with
+        /// <see cref="MoveToStateResult.Cancelled"/>.
+        /// </summary>
+        /// <param name="targetState">The state to transition to.</param>
+        /// <param name="callback">
+        /// Callback invoked when the transition completes, is cancelled, or interrupted
+        /// by session end.
+        /// Arguments: the current state at completion/interruption/cancellation and the
+        /// result code.
+        /// </param>
+        public void MoveToState(ExperimentManagerState targetState, Action<ExperimentManagerState, MoveToStateResult> callback);
+
+        /// <summary>
         /// Setup the initial values used when Session is started <see cref="UXF.Session.Begin"/>.
         /// Calling after session starts will throw an <see cref="System.InvalidOperationException"/>.
         /// If session is started outside of this extensions (e.g., from UI), then the parameters

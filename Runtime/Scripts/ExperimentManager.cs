@@ -105,6 +105,7 @@ namespace ubco.ovilab.uxf.extensions
 
                 if (triggerStateChanged)
                 {
+                    stateChangeHappened = true;
                     StateChanged?.Invoke(currentState);
                 }
             }
@@ -115,6 +116,8 @@ namespace ubco.ovilab.uxf.extensions
 
         #region HIDDEN_VARIABLES
         private ExperimentManagerState currentState = ExperimentManagerState.UninitializedSession;
+        private ExperimentManagerState desiredTargetState = ExperimentManagerState.UninitializedSession;
+        private Action<ExperimentManagerState, MoveToStateResult> moveToStateCallback;
         private Settings initialSettings;
         private Dictionary<string, object> initialParticipantDetails;
         private TMPro.TMP_Text startNextButtonText;
@@ -124,6 +127,8 @@ namespace ubco.ovilab.uxf.extensions
         private bool tryingToGetData = false;
         private bool waitToGetData = false;
         private bool lastBlockCancelled = false;
+        private bool stateChangeHappened = false;
+        private bool movingToTargetState = false;
         private ConfigSummaryData configSummary;
         private int countDisplay_trialTotal;
         private string statusString;
@@ -201,6 +206,28 @@ namespace ubco.ovilab.uxf.extensions
             if (UXFUIController.startupMode != UXFUIStartupMode)
             {
                 StartCoroutine(DelayedSetUXFUIStartupMode(UXFUIStartupMode));
+            }
+        }
+
+        /// <inheritdoc />
+        public virtual void Update()
+        {
+            if (stateChangeHappened)
+            {
+                stateChangeHappened = false;
+                if (movingToTargetState)
+                {
+                    if (CurrentState != desiredTargetState)
+                    {
+                        MoveToNextState();
+                    }
+                    else
+                    {
+                        movingToTargetState = false;
+                        moveToStateCallback?.Invoke(CurrentState, MoveToStateResult.MovedToTargetState);
+                        moveToStateCallback = null;
+                    }
+                }
             }
         }
 
@@ -439,6 +466,13 @@ namespace ubco.ovilab.uxf.extensions
             CurrentState = ExperimentManagerState.SessionEnded;
             AddToOutpuText("Ending session");
             startNextButton?.gameObject.SetActive(false);
+
+            if (movingToTargetState)
+            {
+                moveToStateCallback?.Invoke(CurrentState, MoveToStateResult.SessionEnded);
+                moveToStateCallback = null;
+                movingToTargetState = false;
+            }
         }
 
         /// <summary>
@@ -574,6 +608,18 @@ namespace ubco.ovilab.uxf.extensions
                     }
                 }
             }
+        }
+
+        /// <inheritdoc />
+        public void MoveToState(ExperimentManagerState targetState, Action<ExperimentManagerState, MoveToStateResult> callback)
+        {
+            if (movingToTargetState)
+            {
+                moveToStateCallback?.Invoke(CurrentState, MoveToStateResult.Cancelled);
+            }
+            moveToStateCallback = callback;
+            movingToTargetState = true;
+            desiredTargetState = targetState;
         }
 
         /// <inheritdoc />
