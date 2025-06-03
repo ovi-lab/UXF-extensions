@@ -106,7 +106,7 @@ namespace ubco.ovilab.uxf.extensions
                 if (triggerStateChanged)
                 {
                     stateChangeHappened = true;
-                    StateChanged?.Invoke(currentState);
+                    StateChanged.Invoke(currentState);
                 }
             }
         }
@@ -156,7 +156,10 @@ namespace ubco.ovilab.uxf.extensions
             tryingToGetData = false;
             waitToGetData = false;
             configSummary = null;
-            outputText?.SetText("");
+            if (outputText != null)
+            {
+                outputText.SetText("");
+            }
 
             OnValidate();
 
@@ -170,10 +173,20 @@ namespace ubco.ovilab.uxf.extensions
 
             session.settingsToLog.AddRange(new List<string>(){ "blockName", "canceled", "calibrationName" });
 
-            startNextButton?.onClick.AddListener(MoveToNextState);
-            startNextButtonText = startNextButton?.GetComponentInChildren<TMPro.TMP_Text>();
-            startNextButtonText?.SetText("Load session data");
-            displayText?.SetText(askPrompt);
+            if (startNextButton != null)
+            {
+                startNextButton.onClick.AddListener(MoveToNextState);
+                startNextButtonText = startNextButton.GetComponentInChildren<TMPro.TMP_Text>();
+                if (startNextButtonText != null)
+                {
+                    startNextButtonText.SetText("Load session data");
+                }
+            }
+
+            if (displayText != null)
+            {
+                displayText.SetText(askPrompt);
+            }
         }
 
         public void OnValidate()
@@ -224,7 +237,7 @@ namespace ubco.ovilab.uxf.extensions
                     else
                     {
                         movingToTargetState = false;
-                        moveToStateCallback?.Invoke(CurrentState, MoveToStateResult.MovedToTargetState);
+                        moveToStateCallback.Invoke(CurrentState, MoveToStateResult.MovedToTargetState);
                         moveToStateCallback = null;
                     }
                 }
@@ -252,7 +265,10 @@ namespace ubco.ovilab.uxf.extensions
                 Debug.Log($"Recieved session data (pp# {configSummary.ParticipantIndex})");
                 AddToOutpuText($"Recieved session data (pp# {configSummary.ParticipantIndex})");
                 GetConfig();
-                startNextButtonText?.SetText(nextButtonTextOndataRecieved);
+                if (startNextButtonText != null)
+                {
+                    startNextButtonText.SetText(nextButtonTextOndataRecieved);
+                }
             }
             else
             {
@@ -305,7 +321,10 @@ namespace ubco.ovilab.uxf.extensions
                 Debug.Log($"Recieved session data (pp# {configSummary.ParticipantIndex}): {jsonText}");
                 AddToOutpuText($"Recieved session data (pp# {configSummary.ParticipantIndex}): {jsonText}");
                 GetConfig();
-                startNextButtonText?.SetText(nextButtonTextOndataRecieved);
+                if (startNextButtonText != null)
+                {
+                    startNextButtonText.SetText(nextButtonTextOndataRecieved);
+                }
             }));
         }
 
@@ -374,7 +393,12 @@ namespace ubco.ovilab.uxf.extensions
             OnBlockBegin(block);
             AddToOutpuText("Block: " + block.settings.GetString("blockName"));
             AddToCountText(true);
-            displayText?.gameObject.SetActive(false);
+
+            if (displayText != null)
+            {
+                displayText.gameObject.SetActive(false);
+            }
+
             blockEnded = false;
             lastBlockCancelled = false;
             CurrentState = ExperimentManagerState.BlockBegan;
@@ -445,7 +469,10 @@ namespace ubco.ovilab.uxf.extensions
                 CurrentState = ExperimentManagerState.BlockEnded;
             }
 
-            startNextButtonText?.SetText("Get config");
+            if (startNextButtonText != null)
+            {
+                startNextButtonText.SetText("Get config");
+            }
             waitToGetData = true;
         }
 
@@ -465,11 +492,14 @@ namespace ubco.ovilab.uxf.extensions
             Debug.Log($"Ending session");
             CurrentState = ExperimentManagerState.SessionEnded;
             AddToOutpuText("Ending session");
-            startNextButton?.gameObject.SetActive(false);
+            if (startNextButtonText != null)
+            {
+                startNextButton.gameObject.SetActive(false);
+            }
 
             if (movingToTargetState)
             {
-                moveToStateCallback?.Invoke(CurrentState, MoveToStateResult.SessionEnded);
+                moveToStateCallback.Invoke(CurrentState, MoveToStateResult.SessionEnded);
                 moveToStateCallback = null;
                 movingToTargetState = false;
             }
@@ -534,7 +564,10 @@ namespace ubco.ovilab.uxf.extensions
                 // Makes sure the session doesn't get started again
                 sessionStarted = true;
                 AddToOutpuText("Session started");
-                startNextButtonText?.SetText("Run Calibration");
+                if (startNextButtonText != null)
+                {
+                    startNextButtonText.SetText("Run Calibration");
+                }
                 return;
             }
             else if (!blockEnded)
@@ -583,14 +616,20 @@ namespace ubco.ovilab.uxf.extensions
                                 AddToOutpuText($"Running calibration - {calibrationName}");
                                 calibrationFunctions[calibrationName].Invoke(blockData);
                                 CurrentState = ExperimentManagerState.Calibrating;
-                                startNextButtonText?.SetText("...waiting");
+                                if (startNextButtonText != null)
+                                {
+                                    startNextButtonText.SetText("...waiting");
+                                }
                             }
                             else
                             {
                                 AddToOutpuText($"No calibration - {calibrationName}");
                                 calibrationState = CalibrationState.ended;
                                 CurrentState = ExperimentManagerState.ReadyForBlockBegin;
-                                startNextButtonText?.SetText("Run block");
+                                if (startNextButtonText != null)
+                                {
+                                    startNextButtonText.SetText("Run block");
+                                }
                             }
                             break;
                         }
@@ -602,7 +641,10 @@ namespace ubco.ovilab.uxf.extensions
                             ConfigureBlockBase(blockData);
                             blockData = null;
                             Session.instance.BeginNextTrial();
-                            startNextButtonText?.SetText("Cancel");
+                            if (startNextButtonText != null)
+                            {
+                                startNextButtonText.SetText("Cancel");
+                            }
                             break;
                         }
                     }
@@ -615,7 +657,7 @@ namespace ubco.ovilab.uxf.extensions
         {
             if (movingToTargetState)
             {
-                moveToStateCallback?.Invoke(CurrentState, MoveToStateResult.Cancelled);
+                moveToStateCallback.Invoke(CurrentState, MoveToStateResult.Cancelled);
             }
             moveToStateCallback = callback;
             movingToTargetState = true;
@@ -630,7 +672,10 @@ namespace ubco.ovilab.uxf.extensions
             AddToOutpuText($"Calibration completed");
             calibrationState = CalibrationState.ended;
             CurrentState = ExperimentManagerState.ReadyForBlockBegin;
-            startNextButtonText?.SetText("Run block");
+            if (startNextButtonText != null)
+            {
+                startNextButtonText.SetText("Run block");
+            }
         }
 
         /// <inheritdoc />
@@ -669,7 +714,7 @@ namespace ubco.ovilab.uxf.extensions
                     {
                         Debug.LogWarning($"Request for {dataSource.experimentServerUrl} failed with: {webRequest.error}");
                         AddToOutpuText($"Retrying {getJsonRetryCounter++}");
-                        errorAction?.Invoke(webRequest.responseCode);
+                        errorAction.Invoke(webRequest.responseCode);
                         yield return new WaitForSeconds(5);
                         continue;
                     }
@@ -699,7 +744,10 @@ namespace ubco.ovilab.uxf.extensions
             }
             waitToGetData = false;
 
-            startNextButtonText?.SetText("Run calibration");
+            if (startNextButtonText != null)
+            {
+                startNextButtonText.SetText("Run calibration");
+            }
         }
 
         private void GetConfig()
@@ -707,7 +755,7 @@ namespace ubco.ovilab.uxf.extensions
             if (dataSource.useLocalData)
             {
                 blockData = defaultData[currentDefaultDataIndex];
-                BlockRecieved?.Invoke(blockData);
+                BlockRecieved.Invoke(blockData);
                 AddToOutpuText($"Got new block: {blockData.name}");
                 tryingToGetData = false;
                 CurrentState = ExperimentManagerState.ReadyForCalibration;
@@ -720,7 +768,7 @@ namespace ubco.ovilab.uxf.extensions
                         (jsonText) =>
                         {
                             blockData = JsonConvert.DeserializeObject<TBlockData>(jsonText);
-                            BlockRecieved?.Invoke(blockData);
+                            BlockRecieved.Invoke(blockData);
                             AddToOutpuText($"Got new block: {blockData.name}");
                             tryingToGetData = false;
                             CurrentState = ExperimentManagerState.ReadyForCalibration;
