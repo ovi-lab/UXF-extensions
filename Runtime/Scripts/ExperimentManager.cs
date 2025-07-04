@@ -558,11 +558,24 @@ namespace ubco.ovilab.uxf.extensions
                     AddToOutpuText("participant_index is -1, did't get data?");
                     return;
                 }
-                Session.instance.Begin(experimentName, $"{configSummary.ParticipantIndex}", sessionNumber, initialParticipantDetails, initialSettings);
-                Session.instance.settings.SetValue("participant_index", configSummary.ParticipantIndex);
+                try
+                {
+                    // Makes sure the session doesn't get started again
+                    sessionStarted = true;
+                    Session.instance.Begin(experimentName, $"{configSummary.ParticipantIndex}", sessionNumber, initialParticipantDetails, initialSettings);
+                    Session.instance.settings.SetValue("participant_index", configSummary.ParticipantIndex);
+                }
+                catch(Exception e)
+                {
+                    Debug.LogError(e);
+                    // Makes sure the session can be stared again if something had gone wrong
+                    sessionStarted = Session.instance.hasInitialised;
+                    if (!sessionStarted)
+                    {
+                        return;
+                    }
+                }
 
-                // Makes sure the session doesn't get started again
-                sessionStarted = true;
                 AddToOutpuText("Session started");
                 if (startNextButtonText != null)
                 {
