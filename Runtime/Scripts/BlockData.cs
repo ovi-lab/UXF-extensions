@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -39,10 +41,51 @@ namespace ubco.ovilab.uxf.extensions
 
         public override string ToString()
         {
-            return $"Name: {name}\n" +
-                $"Participant Index: {participant_index}\n" +
-                $"Calibration name: {calibrationName}\n" +
-                $"Block ID:  {block_id}\n";
+            StringBuilder sb = new StringBuilder($"Name: {name}");
+            sb.AppendLine($"Participant Index: {participant_index}");
+            sb.AppendLine($"Calibration name: {calibrationName}");
+            sb.AppendLine($"Block ID:  {block_id}");
+
+            foreach (FieldInfo field in GetFields(this.GetType()))
+            {
+                sb.AppendLine($"{field.Name}:  {field.GetValue(this)}");
+            }
+
+            return sb.ToString();
+        }
+
+        // KLUDGE: This is not used often, maybe cache if performance
+        // is too much of an issue here?
+        protected static FieldInfo[] GetFields(Type type)
+        {
+            return type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
+        }
+
+        /// <summary>
+        /// Returns all the fields as a list of strings.
+        /// Can be used with <see cref="UXF.Session.settingsToLog"/>.
+        /// </summary>
+        public static List<string> GetFieldsAsSettingsToLog<T>() where T : BlockData
+        {
+            return GetFields(typeof(T)).Select(f => f.Name).ToList();
+        }
+
+        /// <summary>
+        /// Return a dictionary which can be used to add all
+        /// parameters to settings with:
+        /// <see cref="UXF.Settings.UpdateWithDict"/>
+        /// </summary>
+        public virtual Dictionary<string, object> GetDictionary()
+        {
+            Dictionary<string, object> dict = new();
+            FieldInfo[] fields = GetFields(this.GetType());
+
+            foreach (FieldInfo field in fields)
+            {
+                dict.Add(field.Name, field.GetValue(this));
+            }
+
+            return dict;
         }
 
         /// <summary>
@@ -92,8 +135,7 @@ namespace ubco.ovilab.uxf.extensions
                     return uniqueSeed;
                 }
 
-                FieldInfo[] fields = this.GetType().GetFields(
-                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
+                FieldInfo[] fields = GetFields(this.GetType());
 
                 Array.Sort(fields, (a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
 
