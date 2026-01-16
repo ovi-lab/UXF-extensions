@@ -448,6 +448,15 @@ namespace ubco.ovilab.uxf.extensions
         private void OnBlockEndBase(Block block)
         {
             calibrationState = CalibrationState.none;
+            if (lastBlockCancelled)
+            {
+                CurrentState = ExperimentManagerState.BlockCancelled;
+            }
+            else
+            {
+                CurrentState = ExperimentManagerState.BlockEnded;
+            }
+
             OnBlockEnd(block);
             // Adding block information to setting to allow it to be logged
             Session.instance.settings.SetValue($"Block_{block.number}", block.settings.baseDict);
@@ -458,15 +467,6 @@ namespace ubco.ovilab.uxf.extensions
             {
                 displayText.gameObject.SetActive(true);
                 displayText.text = askPrompt;
-            }
-
-            if (lastBlockCancelled)
-            {
-                CurrentState = ExperimentManagerState.BlockCancelled;
-            }
-            else
-            {
-                CurrentState = ExperimentManagerState.BlockEnded;
             }
 
             if (startNextButtonText != null)
