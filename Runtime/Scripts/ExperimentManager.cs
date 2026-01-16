@@ -26,7 +26,7 @@ namespace ubco.ovilab.uxf.extensions
     /// <see cref="BlockData"/> or any extension of it. Also provides
     /// abstractions to have a calibration phrase before each block.
     /// </summary>
-    public abstract class ExperimentManager<TBlockData> : MonoBehaviour, IExperimentManager<TBlockData> where TBlockData:BlockData
+    public abstract class ExperimentManager<TBlockData> : MonoBehaviour, IExperimentManager<TBlockData> where TBlockData : BlockData
     {
         private const string UXF_RIG_PATH = "Packages/ubco.ovilab.uxf.extensions/Runtime/UXF/Prefabs/[UXF_Rig].prefab";
 
@@ -61,6 +61,14 @@ namespace ubco.ovilab.uxf.extensions
         /// </summary>
         public UnityEvent<TBlockData> BlockRecieved = new UnityEvent<TBlockData>();
 
+        private string outputTextInfo;
+        private string displayTextInfo;
+        private string countTextInfo;
+
+        public string OutputTextInfo => outputTextInfo;
+        public string DisplayTextInfo => displayTextInfo;
+        public string CountTextInfo => countTextInfo;
+
         [Tooltip("Event triggered when state changes.")]
         [SerializeField] private UnityEvent<ExperimentManagerState> stateChanged = new UnityEvent<ExperimentManagerState>();
 
@@ -77,8 +85,10 @@ namespace ubco.ovilab.uxf.extensions
         [Tooltip("(optional) The text of the start next button. When `Start Next Button` is set, this would help indicate the current state of the progress on screen.")]
 
         /// <inheritdoc />
-        public int ParticipantIndex {
-            get {
+        public int ParticipantIndex
+        {
+            get
+            {
                 Assert.IsNotNull(configSummary, "Config summary not set yet!");
                 return configSummary.ParticipantIndex;
             }
@@ -171,7 +181,7 @@ namespace ubco.ovilab.uxf.extensions
             session.onTrialEnd.AddListener(OnTrialEndBase);
             session.onSessionEnd.AddListener(OnSessionEndBase);
 
-            session.settingsToLog.AddRange(new List<string>(){ "blockName", "canceled", "calibrationName" });
+            session.settingsToLog.AddRange(new List<string>() { "blockName", "canceled", "calibrationName" });
 
             if (startNextButton != null)
             {
@@ -187,6 +197,7 @@ namespace ubco.ovilab.uxf.extensions
             {
                 displayText.SetText(askPrompt);
             }
+            displayTextInfo = askPrompt;
         }
 
         public void OnValidate()
@@ -468,6 +479,7 @@ namespace ubco.ovilab.uxf.extensions
                 displayText.gameObject.SetActive(true);
                 displayText.text = askPrompt;
             }
+            displayTextInfo = askPrompt;
 
             if (startNextButtonText != null)
             {
@@ -565,7 +577,7 @@ namespace ubco.ovilab.uxf.extensions
                     Session.instance.Begin(experimentName, $"{configSummary.ParticipantIndex}", sessionNumber, initialParticipantDetails, initialSettings);
                     Session.instance.settings.SetValue("participant_index", configSummary.ParticipantIndex);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Debug.LogError(e);
                     // Makes sure the session can be stared again if something had gone wrong
@@ -621,45 +633,49 @@ namespace ubco.ovilab.uxf.extensions
                     // Using that to first process the calibration, then configure the block
                     string calibrationName = blockData.calibrationName;
 
-                    switch (calibrationState) {
-                        case CalibrationState.none: {
-                            if (!string.IsNullOrEmpty(calibrationName) && calibrationFunctions.ContainsKey(calibrationName))
+                    switch (calibrationState)
+                    {
+                        case CalibrationState.none:
                             {
-                                calibrationState = CalibrationState.started;
-                                AddToOutpuText($"Running calibration - {calibrationName}");
-                                calibrationFunctions[calibrationName].Invoke(blockData);
-                                CurrentState = ExperimentManagerState.Calibrating;
+                                if (!string.IsNullOrEmpty(calibrationName) && calibrationFunctions.ContainsKey(calibrationName))
+                                {
+                                    calibrationState = CalibrationState.started;
+                                    AddToOutpuText($"Running calibration - {calibrationName}");
+                                    calibrationFunctions[calibrationName].Invoke(blockData);
+                                    CurrentState = ExperimentManagerState.Calibrating;
+                                    if (startNextButtonText != null)
+                                    {
+                                        startNextButtonText.SetText("...waiting");
+                                    }
+                                }
+                                else
+                                {
+                                    AddToOutpuText($"No calibration - {calibrationName}");
+                                    calibrationState = CalibrationState.ended;
+                                    CurrentState = ExperimentManagerState.ReadyForBlockBegin;
+                                    if (startNextButtonText != null)
+                                    {
+                                        startNextButtonText.SetText("Run block");
+                                    }
+                                }
+                                break;
+                            }
+                        case CalibrationState.started:
+                            {
+                                AddToOutpuText($"Waiting for calibration to end - {calibrationName}");
+                                break;
+                            }
+                        case CalibrationState.ended:
+                            {
+                                ConfigureBlockBase(blockData);
+                                blockData = null;
+                                Session.instance.BeginNextTrial();
                                 if (startNextButtonText != null)
                                 {
-                                    startNextButtonText.SetText("...waiting");
+                                    startNextButtonText.SetText("Cancel");
                                 }
+                                break;
                             }
-                            else
-                            {
-                                AddToOutpuText($"No calibration - {calibrationName}");
-                                calibrationState = CalibrationState.ended;
-                                CurrentState = ExperimentManagerState.ReadyForBlockBegin;
-                                if (startNextButtonText != null)
-                                {
-                                    startNextButtonText.SetText("Run block");
-                                }
-                            }
-                            break;
-                        }
-                        case CalibrationState.started: {
-                            AddToOutpuText($"Waiting for calibration to end - {calibrationName}");
-                            break;
-                        }
-                        case CalibrationState.ended: {
-                            ConfigureBlockBase(blockData);
-                            blockData = null;
-                            Session.instance.BeginNextTrial();
-                            if (startNextButtonText != null)
-                            {
-                                startNextButtonText.SetText("Cancel");
-                            }
-                            break;
-                        }
                     }
                 }
             }
@@ -703,7 +719,7 @@ namespace ubco.ovilab.uxf.extensions
 
         // Copied from  UFX.UI.UIController
         // Used to get the trial config from the server
-        IEnumerator GetJsonUrl(string endpoint, System.Action<string> action=null, System.Action<long> errorAction=null, bool post=false, bool repeatIfFailed=false)
+        IEnumerator GetJsonUrl(string endpoint, System.Action<string> action = null, System.Action<long> errorAction = null, bool post = false, bool repeatIfFailed = false)
         {
             string url = $"{dataSource.experimentServerUrl}/{endpoint}";
             Debug.Log($"Request: {url}");
@@ -788,14 +804,14 @@ namespace ubco.ovilab.uxf.extensions
                         },
                         (errorCode) =>
                         {
-// This happens only if /move-to-next needs to be called
+                            // This happens only if /move-to-next needs to be called
                             if (errorCode == 406)
                             {
                                 AddToOutpuText("Server moving to next");
-                                StartCoroutine(GetJsonUrl("api/move-to-next", post:true));
+                                StartCoroutine(GetJsonUrl("api/move-to-next", post: true));
                             }
                         },
-                        repeatIfFailed:true));
+                        repeatIfFailed: true));
             }
         }
 
@@ -803,7 +819,7 @@ namespace ubco.ovilab.uxf.extensions
         {
             if (dataSource.useLocalData)
             {
-                if(++currentDefaultDataIndex != defaultData.Count)
+                if (++currentDefaultDataIndex != defaultData.Count)
                 {
                     GetConfig();
                 }
@@ -835,15 +851,18 @@ namespace ubco.ovilab.uxf.extensions
         protected void AddToOutpuText(string message)
         {
             Debug.Log(message);
+            string[] slicedText = outputText.text.Split("\n");
+            if (slicedText.Length > 5)
+            {
+                slicedText = slicedText.Skip(1).ToArray();
+            }
+
             if (outputText != null)
             {
-                string[] slicedText = outputText.text.Split("\n");
-                if (slicedText.Length > 5)
-                {
-                    slicedText = slicedText.Skip(1).ToArray();
-                }
                 outputText.text = string.Join("\n", slicedText) + $"\n{message}";
             }
+
+            outputTextInfo = string.Join("\n", slicedText) + $"\n{message}";
         }
 
         /// <summary>
@@ -851,13 +870,8 @@ namespace ubco.ovilab.uxf.extensions
         /// If <see cref="countText"/> is not set, this does nothing.
         /// </summary>
         /// <param name="updateTotals">If true, recompute the total counts.</param>
-        protected void AddToCountText(bool updateTotals=false)
+        protected void AddToCountText(bool updateTotals = false)
         {
-            if (countText == null)
-            {
-                return;
-            }
-
             Session session = Session.instance;
             if (updateTotals)
             {
@@ -873,19 +887,28 @@ namespace ubco.ovilab.uxf.extensions
                     {
                         text = text.Replace("&nbsp;", " ").Replace("Participant index", "ppid");
                         statusString = $"\n{text}";
-                        countText.text = $"{session.currentTrialNum}/{countDisplay_trialTotal}  {statusString}";
+                        if (countText != null)
+                        {
+                            countText.text = $"{session.currentTrialNum}/{countDisplay_trialTotal}  {statusString}";
+                        }
+                        countTextInfo = $"{session.currentTrialNum}/{countDisplay_trialTotal}  {statusString}";
                     }));
                 }
             }
             else
             {
-                countText.text = $"{session.currentTrialNum}/{countDisplay_trialTotal}  {statusString}";
+                if (countText != null)
+                {
+                    countText.text = $"{session.currentTrialNum}/{countDisplay_trialTotal}  {statusString}";
+                }
+                countTextInfo = $"{session.currentTrialNum}/{countDisplay_trialTotal}  {statusString}";
             }
         }
 
         #endregion
 
-        enum CalibrationState {
+        enum CalibrationState
+        {
             none, started, ended
         }
     }
